@@ -1,0 +1,47 @@
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card register */
+form {
+  animation: fadeInUp 0.8s ease-in-out;
+}
+
+/* Input box */
+input {
+  transition: all 0.3s ease;
+}
+
+/* Glow effect saat fokus */
+input:focus {
+  box-shadow: 0 0 12px rgba(147, 51, 234, 0.6); /* ungu glow */
+  border-color: #9333ea; /* indigo-600 */
+}
+
+/* Tombol animasi hover */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.7), 
+              0 0 30px rgba(79, 70, 229, 0.6);
+}
+
+/* Link animasi */
+a {
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+a:hover {
+  transform: scale(1.05);
+}

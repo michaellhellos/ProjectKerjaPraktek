@@ -1,0 +1,142 @@
+.add-container {
+  display: flex;
+  background: #f8fafc;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.sidebar {
+  width: 250px;
+  background: #0f172a;
+  color: white;
+  padding: 25px 20px;
+}
+
+.sidebar-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.sidebar-subtitle {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 25px;
+}
+
+.sidebar-menu li {
+  list-style: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.sidebar-menu li:hover,
+.sidebar-menu .active {
+  background: #1d4ed8;
+}
+
+.form-area {
+  flex: 1;
+  padding: 30px 50px;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.form-box {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+}
+
+.upload-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.upload-box {
+  width: 120px;
+  height: 120px;
+  border: 2px dashed #94a3b8;
+  border-radius: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #475569;
+  cursor: pointer;
+  text-align: center;
+  overflow: hidden;
+}
+
+.upload-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-box input {
+  display: none;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.full {
+  grid-column: span 2;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #2f3640;
+  color: white;
+}
+
+.radio-group label {
+  margin-right: 18px;
+}
+
+textarea {
+  height: 70px;
+}
+
+.ktp {
+  border-radius: 8px;
+  border: 2px dashed #94a3b8;
+  padding: 20px;
+  text-align: center;
+}
+
+.form-actions {
+  text-align: right;
+  margin-top: 25px;
+}
+
+.btn-cancel {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #94a3b8;
+  color: white;
+  margin-right: 10px;
+}
+
+.btn-submit {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+}

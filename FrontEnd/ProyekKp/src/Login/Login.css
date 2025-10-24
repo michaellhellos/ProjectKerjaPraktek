@@ -1,0 +1,95 @@
+/* Background utama */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #0b132b;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Kotak login */
+.login-box {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+  width: 340px;
+  padding: 2rem 2.5rem;
+  text-align: center;
+}
+
+/* Logo section */
+.logo-section {
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  width: 60px;
+  height: 80px;
+  background-color: #2f5df5;
+  border-radius: 8px;
+  margin: 0 auto 0.5rem auto;
+}
+
+.brand-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.since {
+  font-size: 0.75rem;
+  color: gray;
+  margin-bottom: 1rem;
+}
+
+/* Judul */
+.login-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+}
+
+/* Form */
+form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+  color: #444;
+}
+
+input {
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  border: 1px solid #555;
+  font-size: 0.9rem;
+  background-color: #333;
+  color: white;
+}
+
+input::placeholder {
+  color: #aaa;
+}
+
+/* Tombol Masuk */
+.login-button {
+  background-color: #2f5df5;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-button:hover {
+  background-color: #244bd1;
+}
