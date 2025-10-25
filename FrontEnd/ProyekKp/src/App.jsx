@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./Login/Login";
-import HomeAdmin from "./Admin/HomeAdmin";
+import HomeAdmin from "./Admin/homeKaryawanPage";
 import Warehouse from "./WareHouse/warehouse";
 import Sistem from "./Sistem/sistem";
 import Managekariawan from "./Sistem/managekariawan";
@@ -15,6 +15,10 @@ import TambahBarangGudang from "./WareHouse/tambahbaranggudang";
 import TambahBarangKeluar from "./WareHouse/tambahbarangkeluar"; 
 import ReturGudang from "./WareHouse/returgudang";
 //karyawan
+import HomePage from "./Karyawan/homePage";
+import Keranjang from "./Karyawan/keranjang";
+import Gudang from "./Karyawan/gudang";
+
 function App() {
   return (
     <Routes>
@@ -33,6 +37,10 @@ function App() {
       <Route path="/WareHouse/tambahbaranggudang" element={<TambahBarangGudang />} />
       <Route path="/WareHouse/tambahbarangkeluar" element={<TambahBarangKeluar />} />
       <Route path="/WareHouse/returgudang" element={<ReturGudang />} />
+      {/* karyawan */}
+      <Route path="/Karyawan/homepage" element={<HomePage />} />
+      <Route path="/Karyawan/keranjang" element={<Keranjang />} />
+      <Route path="/Karyawan/gudang" element={<Gudang />} />
     </Routes>
   );
 }

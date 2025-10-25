@@ -1,0 +1,115 @@
+.gudang-container {
+  display: flex;
+  background: #0a1a33;
+  height: 100vh;
+  color: #fff;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  background: #081529;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile h3 {
+  margin: 0;
+}
+.profile p {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 30px;
+  flex-grow: 1;
+}
+.sidebar ul li {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.sidebar ul li.active,
+.sidebar ul li:hover {
+  background: #1d2945;
+}
+
+.logout {
+  background: #d9534f;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+}
+
+/* MAIN */
+.main-gudang {
+  flex-grow: 1;
+  padding: 25px;
+}
+
+.search-barang {
+  width: 50%;
+  max-width: 400px;
+  padding: 10px;
+  margin: 15px 0 25px 0;
+  border-radius: 6px;
+  border: none;
+}
+
+.gudang-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.card-gudang {
+  background: white;
+  color: black;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  position: relative;
+}
+
+.img-placeholder-gudang {
+  height: 80px;
+  background: #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* STOCK CIRCLE COLOR */
+.stock-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  margin: 10px auto 0;
+  font-size: 20px;
+}
+
+.red {
+  background: #ff4a4a;
+  color: white;
+}
+
+.yellow {
+  background: #ffcc00;
+  color: black;
+}
+
+.green {
+  background: #47d147;
+  color: white;
+}

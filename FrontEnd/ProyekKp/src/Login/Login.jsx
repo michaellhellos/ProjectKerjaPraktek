@@ -54,7 +54,9 @@ function Login() {
   const handleHaiClick = () => {
     navigate("/Warehouse/warehouse"); // arahkan ke halaman warehouse
   };
-
+const handleHaiClickk = () => {
+    navigate("/Karyawan/homepage"); // arahkan ke halaman warehouse
+  };
   return (
     <div className="login-container">
       <div className="login-box">
@@ -96,6 +98,9 @@ function Login() {
         {/* ✅ Tombol Hai di bawah form */}
         <button onClick={handleHaiClick} className="hai-button">
           Hai 👋
+        </button>
+        <button onClick={handleHaiClickk} className="hello-button">
+          hellok 👋
         </button>
       </div>
     </div>
