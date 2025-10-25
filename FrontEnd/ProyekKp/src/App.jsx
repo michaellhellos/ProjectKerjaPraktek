@@ -9,7 +9,12 @@ import StockGudang from "./Sistem/stockgudang";
 import DaftarBarang from "./Sistem/daftarbarang";
 import TambahBarang from "./Sistem/tambahbarang";
 import Retur from "./Sistem/retur";
-
+//kepala gudang
+import GudangStockBarang from "./WareHouse/gudangstockbarang";
+import TambahBarangGudang from "./WareHouse/tambahbaranggudang";
+import TambahBarangKeluar from "./WareHouse/tambahbarangkeluar"; 
+import ReturGudang from "./WareHouse/returgudang";
+//karyawan
 function App() {
   return (
     <Routes>
@@ -23,6 +28,11 @@ function App() {
       <Route path="/Sistem/daftarBarang" element={<DaftarBarang />} />
       <Route path="/Sistem/tambahbarang" element={<TambahBarang />} />
       <Route path="/Sistem/retur" element={<Retur />} />
+      {/* //kepala gudang */}
+      <Route path="/WareHouse/gudangstockbarang" element={<GudangStockBarang />} />
+      <Route path="/WareHouse/tambahbaranggudang" element={<TambahBarangGudang />} />
+      <Route path="/WareHouse/tambahbarangkeluar" element={<TambahBarangKeluar />} />
+      <Route path="/WareHouse/returgudang" element={<ReturGudang />} />
     </Routes>
   );
 }

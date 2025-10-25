@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
+import Warehouse from "../WareHouse/warehouse";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // 🔹 Fungsi login utama
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -27,10 +29,10 @@ function Login() {
         return;
       }
 
-      // ✅ SIMPAN USER KE LOCAL STORAGE (opsional)
+      // ✅ Simpan user ke local storage (opsional)
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // ✅ CEK ROLE & REDIRECT
+      // ✅ Cek role dan arahkan ke halaman sesuai role
       if (data.user.role === "admin") {
         alert("Hallo Admin 👋");
         navigate("/Sistem/sistem");
@@ -46,6 +48,11 @@ function Login() {
     } catch (error) {
       alert("Terjadi kesalahan: " + error.message);
     }
+  };
+
+  // 🔹 Fungsi tombol “Hai 👋”
+  const handleHaiClick = () => {
+    navigate("/Warehouse/warehouse"); // arahkan ke halaman warehouse
   };
 
   return (
@@ -85,6 +92,11 @@ function Login() {
             Masuk
           </button>
         </form>
+
+        {/* ✅ Tombol Hai di bawah form */}
+        <button onClick={handleHaiClick} className="hai-button">
+          Hai 👋
+        </button>
       </div>
     </div>
   );

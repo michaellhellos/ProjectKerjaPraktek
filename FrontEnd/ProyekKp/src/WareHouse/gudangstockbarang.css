@@ -1,0 +1,181 @@
+/* Layout utama */
+.gudang-container {
+  display: flex;
+  background-color: #0f1c2e;
+  color: white;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 230px;
+  background-color: #12233b;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.profile {
+  text-align: center;
+}
+
+.profile-icon {
+  width: 50px;
+  height: 50px;
+  background-color: #2e5bff;
+  color: white;
+  border-radius: 50%;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: #cfd8e3;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+.nav-menu a.active, .nav-menu a:hover {
+  background-color: #2e5bff;
+  color: white;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.main-content header h1 {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.main-content header p {
+  color: #9ca3af;
+  margin-bottom: 25px;
+}
+
+/* Search bar */
+.search-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.search-container input {
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  width: 250px;
+  outline: none;
+  color: #111;
+}
+
+/* Table */
+.table-container {
+  background-color: #1e2d47;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #e5e7eb;
+}
+
+thead {
+  background-color: #12233b;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+th {
+  color: #9ca3af;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+tbody tr {
+  border-bottom: 1px solid #2b3a58;
+}
+
+tbody tr:hover {
+  background-color: #233452;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.badge.ransel {
+  background-color: #1d4ed8;
+  color: #fff;
+}
+
+.badge.selempang {
+  background-color: #34d399;
+  color: #083344;
+}
+
+.badge.koper {
+  background-color: #60a5fa;
+  color: #0c4a6e;
+}
+
+.badge.lainnya {
+  background-color: #e5e7eb;
+  color: #111;
+}
+
+/* Tombol aksi */
+.aksi {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn, .view-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.edit-btn {
+  color: #3b82f6;
+}
+
+.view-btn {
+  color: #10b981;
+}
