@@ -18,7 +18,7 @@ const db = admin.firestore();
  * body: { name, email, password, role }
  * role: "admin" | "karyawan" | "kepala_gudang"
  */
-exports.registerUser = onRequest(async (req, res) => {
+exports.registerUser = functions.https.onRequest(async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -182,4 +182,41 @@ exports.addKaryawan = functions.https.onRequest((req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+});
+
+
+
+//Gudang
+//Tambah Barang Gudang
+exports.tambahBarang = functions.https.onRequest(async (req, res) => {
+  // Allow CORS (biar bisa dipanggil dari frontend)
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+
+  try {
+    const { id, nama, harga, stok, foto, tipe } = req.body;
+
+    if (!id || !nama || !harga || !stok) {
+      return res.status(400).json({ message: "Data tidak lengkap!" });
+    }
+
+    await db.collection("barang").doc(id).set({
+      id,
+      nama,
+      harga: Number(harga),
+      stok: Number(stok),
+      foto: foto || "",
+      tipe: tipe || "",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return res.status(200).json({ message: "Barang berhasil ditambahkan!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Terjadi kesalahan server." });
+  }
 });

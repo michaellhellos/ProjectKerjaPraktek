@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { db, storage } from "../firebase"; // pastikan path ini sesuai
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "./tambahbaranggudang.css";
 
 const TambahBarangGudang = () => {
@@ -11,6 +14,9 @@ const TambahBarangGudang = () => {
     fotoBarang: null,
   });
 
+  const [loading, setLoading] = useState(false);
+
+  // Handle input form
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "fotoBarang") {
@@ -20,10 +26,49 @@ const TambahBarangGudang = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  // Handle submit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Data Barang berhasil disimpan!");
-    console.log(formData);
+    setLoading(true);
+
+    try {
+      let fotoURL = "";
+
+      // Upload foto ke Storage (jika ada)
+      if (formData.fotoBarang) {
+        const storageRef = ref(storage, `barang/${formData.idBarang}_${formData.fotoBarang.name}`);
+        await uploadBytes(storageRef, formData.fotoBarang);
+        fotoURL = await getDownloadURL(storageRef);
+      }
+
+      // Simpan data ke Firestore
+      await addDoc(collection(db, "barang"), {
+        idBarang: formData.idBarang,
+        namaBarang: formData.namaBarang,
+        jumlah: Number(formData.jumlah),
+        tipeBarang: formData.tipeBarang,
+        tanggalMasuk: formData.tanggalMasuk,
+        fotoURL,
+        createdAt: serverTimestamp(),
+      });
+
+      alert("✅ Data Barang berhasil disimpan!");
+
+      // Reset form
+      setFormData({
+        idBarang: "",
+        namaBarang: "",
+        jumlah: 0,
+        tipeBarang: "",
+        tanggalMasuk: "",
+        fotoBarang: null,
+      });
+    } catch (error) {
+      console.error("Gagal menyimpan data:", error);
+      alert("❌ Gagal menyimpan data barang!");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -132,25 +177,20 @@ const TambahBarangGudang = () => {
             {/* Row 4 - Upload */}
             <div className="form-group file-upload">
               <label>Foto Barang</label>
-              <div className="upload-area">
-                <input
-                  type="file"
-                  name="fotoBarang"
-                  id="fotoBarang"
-                  accept="image/png, image/jpeg, image/gif"
-                  onChange={handleChange}
-                />
-                <p>
-                  <span>Klik untuk memilih</span> atau seret file foto<br />
-                  <small>PNG, JPG, GIF hingga 10MB</small>
-                </p>
-              </div>
+              <input
+                type="file"
+                name="fotoBarang"
+                accept="image/png, image/jpeg, image/gif"
+                onChange={handleChange}
+              />
             </div>
 
             {/* Buttons */}
             <div className="button-row">
               <button type="button" className="btn-cancel">Batal</button>
-              <button type="submit" className="btn-submit">Simpan</button>
+              <button type="submit" className="btn-submit" disabled={loading}>
+                {loading ? "Menyimpan..." : "Simpan"}
+              </button>
             </div>
           </form>
         </div>
