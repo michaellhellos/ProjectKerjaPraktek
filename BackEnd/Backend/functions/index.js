@@ -1,22 +1,22 @@
-const { onRequest } = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const bcrypt = require("bcryptjs"); // pastikan install: npm install bcryptjs
-
-
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const multer = require("multer");
+const cors = require("cors");
 
 admin.initializeApp();
-
-const storage = admin.storage().bucket();
-const multer = require("multer");
-
-
 const db = admin.firestore();
+const bucket = admin.storage().bucket();
+
+const app = express();
+app.use(cors({ origin: true }));
+app.use(express.json());
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 /**
- * REGISTER USER
- * body: { name, email, password, role }
- * role: "admin" | "karyawan" | "kepala_gudang"
+ * ✅ REGISTER USER
  */
 exports.registerUser = functions.https.onRequest(async (req, res) => {
   try {
@@ -26,45 +26,40 @@ exports.registerUser = functions.https.onRequest(async (req, res) => {
       return res.status(400).json({ error: "Semua field wajib diisi" });
     }
 
-    // cek apakah email sudah ada
     const snapshot = await db.collection("users").where("email", "==", email).get();
     if (!snapshot.empty) {
       return res.status(400).json({ error: "Email sudah terdaftar" });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // simpan user
     const docRef = await db.collection("users").add({
       name,
       email,
       password: hashedPassword,
       role,
-      active: true, // default aktif
-      createdAt: new Date(),
+      active: true,
+      createdAt: new Date()
     });
 
     res.json({ success: true, id: docRef.id, message: "User berhasil didaftarkan" });
+
   } catch (error) {
-    logger.error(error);
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
 /**
- * LOGIN Sistem
- * body: { email, password }
+ * ✅ LOGIN USER
  */
-exports.loginUser = onRequest(async (req, res) => {
+exports.loginUser = functions.https.onRequest(async (req, res) => {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
       return res.status(400).json({ error: "Email dan Password wajib diisi" });
     }
 
-    // cari user berdasarkan email
     const snapshot = await db.collection("users").where("email", "==", email).get();
     if (snapshot.empty) {
       return res.status(401).json({ error: "Email atau password salah" });
@@ -73,130 +68,123 @@ exports.loginUser = onRequest(async (req, res) => {
     const userDoc = snapshot.docs[0];
     const userData = userDoc.data();
 
-    // cek apakah user aktif
     if (!userData.active) {
       return res.status(403).json({ error: "Akun sudah dinonaktifkan" });
     }
 
-    // verifikasi password
     const isMatch = await bcrypt.compare(password, userData.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Email atau password salah" });
     }
 
-    // ---- LOGIC ROLE & GREETING ----
-    let greeting = "Hallo Karyawan"; // default
-
-    if (userData.role === "admin") {
-      greeting = "Hallo Admin";
-    } else if (userData.role === "kepala_gudang") {
-      greeting = "Hallo Kepala Gudang";
-    }
-
     res.json({
       success: true,
-      message: greeting,
       user: {
         id: userDoc.id,
         name: userData.name,
         email: userData.email,
-        role: userData.role,
-      },
+        role: userData.role
+      }
     });
 
   } catch (error) {
-    logger.error(error);
+    console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
-// konfigurasi multer untuk upload foto KTP
-const upload = multer({
-  storage: multer.memoryStorage(),
-});
 
-exports.addKaryawan = functions.https.onRequest((req, res) => {
-  cors(req, res, async () => {
-  try {
-    const {
-      namaLengkap,
-      tempatLahir,
-      tanggalLahir,
-      jenisKelamin,
-      golonganDarah,
-      alamat,
-      noTelepon,
-      agama
-    } = req.body;
+/**
+ * ✅ ADD KARYAWAN (dengan foto & KTP)
+ */
 
-    if (!req.file) {
-      return res.status(400).json({ error: "Foto KTP wajib diupload" });
+app.post(
+  "/addKaryawan",
+  upload.fields([
+    { name: "foto", maxCount: 1 },
+    { name: "ktp", maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      const {
+        namaLengkap, tempatLahir, tanggalLahir,
+        jenisKelamin, golonganDarah, alamat,
+        noTelepon, agama
+      } = req.body;
+
+      if (!req.files || !req.files.foto || !req.files.ktp) {
+        return res.status(400).json({ error: "Foto dan KTP wajib diupload!" });
+      }
+
+      // ✅ Generate ID karyawan terbaru
+      const snapshot = await db.collection("karyawan")
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+
+      let nextID = "k001";
+      if (!snapshot.empty) {
+        const lastId = snapshot.docs[0].data().idKaryawan;
+        const num = parseInt(lastId.substring(1)) + 1;
+        nextID = "k" + num.toString().padStart(3, "0");
+      }
+
+      const uploadFile = async (file, prefix) => {
+        const ext = file.originalname.split(".").pop();
+        const path = `karyawan/${nextID}_${prefix}.${ext}`;
+
+        const storageFile = bucket.file(path);
+        await storageFile.save(file.buffer, {
+          metadata: { contentType: file.mimetype },
+        });
+
+        const [url] = await storageFile.getSignedUrl({
+          action: "read",
+          expires: "03-09-2500"
+        });
+
+        return url;
+      };
+
+      const fotoURL = await uploadFile(req.files.foto[0], "foto");
+      const ktpURL = await uploadFile(req.files.ktp[0], "ktp");
+
+      await db.collection("karyawan").add({
+        idKaryawan: nextID,
+        namaLengkap,
+        tempatLahir,
+        tanggalLahir,
+        jenisKelamin,
+        golonganDarah,
+        alamat,
+        noTelepon,
+        agama,
+        foto: fotoURL,
+        ktp: ktpURL,
+        createdAt: new Date()
+      });
+
+      return res.json({
+        success: true,
+        message: "Karyawan berhasil ditambahkan!",
+        idKaryawan: nextID,
+        foto: fotoURL,
+        ktp: ktpURL,
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
     }
-
-    // Ambil ID terakhir
-    const snapshot = await db.collection("karyawan").orderBy("createdAt", "desc").limit(1).get();
-    let nextID = "k001";
-
-    if (!snapshot.empty) {
-      const lastId = snapshot.docs[0].data().idKaryawan; // contoh: k007
-      const num = parseInt(lastId.substring(1)) + 1;
-      nextID = "k" + num.toString().padStart(3, "0");
-    }
-
-    // Upload foto ke Storage
-    const fileName = `karyawan/${nextID}_ktp.jpg`;
-    const file = storage.file(fileName);
-
-    await file.save(req.file.buffer, {
-      metadata: { contentType: req.file.mimetype },
-    });
-
-    const fotoKTP_URL = await file.getSignedUrl({
-      action: "read",
-      expires: "03-01-2035",
-    });
-
-    // Simpan data ke Firestore
-    const docRef = await db.collection("karyawan").add({
-      idKaryawan: nextID,
-      namaLengkap,
-      tempatLahir,
-      tanggalLahir,
-      jenisKelamin,
-      golonganDarah,
-      alamat,
-      noTelepon,
-      agama,
-      fotoKTP: fotoKTP_URL[0],
-      createdAt: new Date(),
-    });
-
-    res.json({
-      success: true,
-      message: "Karyawan berhasil ditambahkan ✅",
-      id: docRef.id,
-      idKaryawan: nextID,
-    });
-
-  } catch (error) {
-    logger.error(error);
-    res.status(500).json({ error: error.message });
   }
-});
-});
+);
 
+// ✅ Export function tunggal (tidak boleh duplikat lagi)
+exports.addKaryawan = functions.region("us-central1").https.onRequest(app);
 
-
-//Gudang
-//Tambah Barang Gudang
+/**
+ * ✅ TAMBAH BARANG
+ */
 exports.tambahBarang = functions.https.onRequest(async (req, res) => {
-  // Allow CORS (biar bisa dipanggil dari frontend)
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET, POST');
-  res.set('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.status(204).send('');
-  }
-
   try {
     const { id, nama, harga, stok, foto, tipe } = req.body;
 
@@ -211,12 +199,169 @@ exports.tambahBarang = functions.https.onRequest(async (req, res) => {
       stok: Number(stok),
       foto: foto || "",
       tipe: tipe || "",
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: new Date(),
     });
 
-    return res.status(200).json({ message: "Barang berhasil ditambahkan!" });
+    res.json({ success: true, message: "Barang berhasil ditambahkan!" });
+
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Terjadi kesalahan server." });
+    res.status(500).json({ error: error.message });
   }
 });
+//delete barang
+exports.deleteBarang = functions.https.onRequest(async (req, res) => {
+  try {
+    const id = req.query.id; // contoh request: ?id=ba001
+    if (!id) return res.status(400).json({ message: "ID dibutuhkan!" });
+
+    await db.collection("barang").doc(id).delete();
+
+    res.json({ success: true, message: "Barang berhasil dihapus!" });
+    
+  } catch (error) {
+    console.error("Error deleteBarang:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+//get barang
+exports.getBarang = functions.https.onRequest(async (req, res) => {
+  try {
+    const snapshot = await db.collection("barang").get();
+
+    let barangList = [];
+    snapshot.forEach((doc) => {
+      barangList.push(doc.data());
+    });
+
+    res.json({
+      success: true,
+      data: barangList
+    });
+
+  } catch (error) {
+    console.error("Error getBarang:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// retur barang 
+
+app.post("/tambahRetur",
+  upload.single("fotoRusak"),
+  async (req, res) => {
+    try {
+      const { idBarang, namaBarang, jumlah } = req.body;
+
+      if (!idBarang || !namaBarang || !jumlah) {
+        return res.status(400).json({ message: "Data tidak lengkap!" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Foto bukti rusak wajib diupload!" });
+      }
+
+      // ✅ Generate ID Retur
+      const snap = await db.collection("retur").orderBy("createdAt", "desc").limit(1).get();
+      let nextID = "r001";
+
+      if (!snap.empty) {
+        const lastID = snap.docs[0].data().idRetur;
+        const num = parseInt(lastID.substring(1)) + 1;
+        nextID = "r" + num.toString().padStart(3, "0");
+      }
+
+      // ✅ Upload foto
+      const ext = req.file.originalname.split(".").pop();
+      const filename = `retur/${nextID}_rusak.${ext}`;
+      const fileUpload = bucket.file(filename);
+
+      await fileUpload.save(req.file.buffer, {
+        metadata: { contentType: req.file.mimetype },
+      });
+
+      const [fotoURL] = await fileUpload.getSignedUrl({
+        action: "read",
+        expires: "03-09-2500",
+      });
+
+      // ✅ Simpan Firestore
+      await db.collection("retur").doc(nextID).set({
+        idRetur: nextID,
+        idBarang,
+        namaBarang,
+        jumlah: Number(jumlah),
+        fotoRusak: fotoURL,
+        status: "pending",
+        createdAt: new Date(),
+      });
+
+      res.json({
+        success: true,
+        message: "Retur berhasil ditambahkan!",
+        idRetur: nextID
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+exports.tambahRetur = functions.https.onRequest(app);
+// get retur
+
+app.get("/getRetur", async (req, res) => {
+  try {
+    const snapshot = await db.collection("retur").orderBy("createdAt", "desc").get();
+
+    const returList = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json({
+      success: true,
+      data: returList,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+//delete retur
+app.delete("/deleteRetur/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const doc = await db.collection("retur").doc(id).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ message: "Data retur tidak ditemukan" });
+    }
+
+    const data = doc.data();
+
+    // ✅ Cari foto di storage dari URL
+    if (data.fotoRusak) {
+      const filePath = decodeURIComponent(
+        data.fotoRusak.split("/o/")[1].split("?")[0]
+      );
+      await bucket.file(filePath).delete().catch(() => {});
+    }
+
+    // ✅ Hapus data retur
+    await db.collection("retur").doc(id).delete();
+
+    res.json({
+      success: true,
+      message: "Data retur berhasil dihapus!"
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+//kepala gudang 

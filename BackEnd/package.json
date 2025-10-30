@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
     "multer": "^2.0.2"
   }
 }
