@@ -24,43 +24,40 @@ const TambahKaryawan = () => {
 
   // === KLIK SUBMIT ===
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const formData = new FormData();
-    formData.append("namaLengkap", namaLengkap);
-    formData.append("tempatLahir", tempatLahir);
-    formData.append("tanggalLahir", tanggalLahir);
-    formData.append("jenisKelamin", jenisKelamin);
-    formData.append("golonganDarah", golonganDarah);
-    formData.append("alamat", alamat);
-    formData.append("noTelepon", noTelepon);
-    formData.append("agama", agama);
+    try {
+      const formData = new FormData();
+      formData.append("namaLengkap", namaLengkap);
+      formData.append("tempatLahir", tempatLahir);
+      formData.append("tanggalLahir", tanggalLahir);
+      formData.append("jenisKelamin", jenisKelamin);
+      formData.append("golonganDarah", golonganDarah);
+      formData.append("alamat", alamat);
+      formData.append("noTelepon", noTelepon);
+      formData.append("agama", agama);
 
-    if (foto) formData.append("foto", foto);
-    if (ktp) formData.append("ktp", ktp);
+      if (foto) formData.append("foto", foto);
+      if (ktp) formData.append("ktp", ktp);
 
-    const res = await fetch(
-      "http://127.0.0.1:5001/demo-no-project/us-central1/addKaryawan",
-      {
+      // 🔹 URL backend Node.js (bukan Firebase)
+      const res = await fetch("http://localhost:3000/addKaryawan", {
         method: "POST",
         body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert(`✅ Karyawan berhasil ditambahkan dengan ID: ${data.idKaryawan}`);
+        navigate("/Sistem/managekariawan");
+      } else {
+        alert("❌ Gagal: " + data.error);
       }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      alert(`Karyawan berhasil ditambahkan dengan ID: ${data.idKaryawan}`);
-      navigate("/Sistem/managekariawan");
-    } else {
-      alert("Gagal: " + data.error);
+    } catch (err) {
+      alert("❌ Gagal menyimpan: " + err.message);
     }
-
-  } catch (err) {
-    alert("Gagal menyimpan: " + err.message);
-  }
-};
+  };
 
   return (
     <div className="add-container">
@@ -79,7 +76,7 @@ const TambahKaryawan = () => {
         </ul>
       </aside>
 
-      {/* Form */}
+      {/* Form Area */}
       <div className="form-area">
         <h2 className="page-title">Tambah Karyawan</h2>
 
@@ -88,39 +85,83 @@ const TambahKaryawan = () => {
           {/* Upload Foto */}
           <div className="upload-section">
             <label className="upload-box">
-              {foto ? <img src={URL.createObjectURL(foto)} alt="preview" /> : <span>Upload Foto</span>}
-              <input type="file" accept="image/*" onChange={(e) => setFoto(e.target.files[0])} />
+              {foto ? (
+                <img src={URL.createObjectURL(foto)} alt="preview" />
+              ) : (
+                <span>Upload Foto</span>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFoto(e.target.files[0])}
+              />
             </label>
           </div>
 
-          {/* Detail Form */}
+          {/* Form Fields */}
           <div className="form-grid">
             <div>
               <label>Nama Lengkap</label>
-              <input type="text" value={namaLengkap} onChange={(e) => setNamaLengkap(e.target.value)} />
+              <input
+                type="text"
+                value={namaLengkap}
+                onChange={(e) => setNamaLengkap(e.target.value)}
+                required
+              />
             </div>
 
             <div>
               <label>Tempat Lahir</label>
-              <input type="text" value={tempatLahir} onChange={(e) => setTempatLahir(e.target.value)} />
+              <input
+                type="text"
+                value={tempatLahir}
+                onChange={(e) => setTempatLahir(e.target.value)}
+                required
+              />
             </div>
 
             <div>
               <label>Tanggal Lahir</label>
-              <input type="date" value={tanggalLahir} onChange={(e) => setTanggalLahir(e.target.value)} />
+              <input
+                type="date"
+                value={tanggalLahir}
+                onChange={(e) => setTanggalLahir(e.target.value)}
+                required
+              />
             </div>
 
             <div>
               <label>Jenis Kelamin</label>
               <div className="radio-group">
-                <label><input type="radio" name="gender" value="Laki-Laki" onChange={(e) => setJenisKelamin(e.target.value)} /> Laki-laki</label>
-                <label><input type="radio" name="gender" value="Perempuan" onChange={(e) => setJenisKelamin(e.target.value)} /> Perempuan</label>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Laki-Laki"
+                    onChange={(e) => setJenisKelamin(e.target.value)}
+                    required
+                  />{" "}
+                  Laki-laki
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="Perempuan"
+                    onChange={(e) => setJenisKelamin(e.target.value)}
+                  />{" "}
+                  Perempuan
+                </label>
               </div>
             </div>
 
             <div>
               <label>Golongan Darah</label>
-              <select value={golonganDarah} onChange={(e) => setGolonganDarah(e.target.value)}>
+              <select
+                value={golonganDarah}
+                onChange={(e) => setGolonganDarah(e.target.value)}
+                required
+              >
                 <option value="">Pilih..</option>
                 <option>A</option>
                 <option>B</option>
@@ -131,17 +172,30 @@ const TambahKaryawan = () => {
 
             <div className="full">
               <label>Alamat</label>
-              <textarea value={alamat} onChange={(e) => setAlamat(e.target.value)}></textarea>
+              <textarea
+                value={alamat}
+                onChange={(e) => setAlamat(e.target.value)}
+                required
+              ></textarea>
             </div>
 
             <div>
               <label>No Telepon</label>
-              <input type="text" value={noTelepon} onChange={(e) => setNoTelepon(e.target.value)} />
+              <input
+                type="text"
+                value={noTelepon}
+                onChange={(e) => setNoTelepon(e.target.value)}
+                required
+              />
             </div>
 
             <div>
               <label>Agama</label>
-              <select value={agama} onChange={(e) => setAgama(e.target.value)}>
+              <select
+                value={agama}
+                onChange={(e) => setAgama(e.target.value)}
+                required
+              >
                 <option value="">Pilih..</option>
                 <option>Islam</option>
                 <option>Kristen</option>
@@ -156,16 +210,23 @@ const TambahKaryawan = () => {
               <label>Upload Scan KTP</label>
               <label className="upload-box ktp">
                 {ktp ? <p>{ktp.name}</p> : <span>Upload file (PNG, JPG, PDF)</span>}
-                <input type="file" accept=".png,.jpg,.jpeg,.pdf" onChange={(e) => setKtp(e.target.files[0])} />
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.pdf"
+                  onChange={(e) => setKtp(e.target.files[0])}
+                />
               </label>
             </div>
           </div>
 
           <div className="form-actions">
-            <button className="btn-cancel" onClick={handleCancel}>Batal</button>
-            <button className="btn-submit" onClick={handleSubmit}>Tambah</button>
+            <button className="btn-cancel" onClick={handleCancel}>
+              Batal
+            </button>
+            <button className="btn-submit" onClick={handleSubmit}>
+              Tambah
+            </button>
           </div>
-
         </div>
       </div>
     </div>

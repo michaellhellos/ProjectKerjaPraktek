@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import Warehouse from "../WareHouse/warehouse";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -13,35 +12,27 @@ function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:5001/demo-no-project/us-central1/loginUser", // 🔥 GANTI sesuai URL emulator
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
 
-      if (!data.success) {
-        alert(data.error || "Email atau password salah");
+      // ✅ Jika response tidak OK (misalnya 401)
+      if (!response.ok) {
+        alert(data.message || "Email atau password salah!");
         return;
       }
 
-      // ✅ Simpan user ke local storage (opsional)
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // ✅ Cek role dan arahkan ke halaman sesuai role
-      if (data.user.role === "admin") {
-        alert("Hallo Admin 👋");
+      // ✅ Cek role dari backend
+      if (data.role === "admin") {
+        alert("Hallo_Admin 👋");
         navigate("/Sistem/sistem");
-      } else if (data.user.role === "kepala_gudang") {
+      } else if (data.role === "kepala_gudang") {
         alert("Hallo Kepala Gudang 👋");
-        navigate("/Sistem/kepalagudang");
-      } else if (data.user.role === "karyawan") {
-        alert("Hallo Karyawan 👋");
-        navigate("/Sistem/karyawan");
+        navigate("/Warehouse/warehouse");
       } else {
         alert("Role tidak dikenali!");
       }
@@ -50,13 +41,15 @@ function Login() {
     }
   };
 
-  // 🔹 Fungsi tombol “Hai 👋”
+  // 🔹 Tombol tambahan (opsional)
   const handleHaiClick = () => {
-    navigate("/Warehouse/warehouse"); // arahkan ke halaman warehouse
+    navigate("/Warehouse/warehouse");
   };
-const handleHaiClickk = () => {
-    navigate("/Karyawan/homepage"); // arahkan ke halaman warehouse
+
+  const handleHaiClickk = () => {
+    navigate("/Karyawan/homepage");
   };
+
   return (
     <div className="login-container">
       <div className="login-box">
@@ -95,7 +88,7 @@ const handleHaiClickk = () => {
           </button>
         </form>
 
-        {/* ✅ Tombol Hai di bawah form */}
+        {/* ✅ Tombol opsional */}
         <button onClick={handleHaiClick} className="hai-button">
           Hai 👋
         </button>

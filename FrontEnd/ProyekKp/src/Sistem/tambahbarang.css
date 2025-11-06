@@ -52,11 +52,13 @@
 }
 
 .preview img {
-  width: 180px;
-  margin-top: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
 }
+
 
 .btn-group {
   display: flex;
@@ -90,4 +92,15 @@
 
 .btn-reset:hover {
   background: #b02a37;
+}
+input[type="file"] {
+  display: block;
+  background-color: #2f3542;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px;
+  margin-top: 5px;
+  width: 100%;
+  cursor: pointer;
 }
