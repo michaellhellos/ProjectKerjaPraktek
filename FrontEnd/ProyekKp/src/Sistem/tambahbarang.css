@@ -104,3 +104,19 @@ input[type="file"] {
   width: 100%;
   cursor: pointer;
 }
+.tambahbarang-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #0b132b;
+  min-height: 100vh;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+.tambahbarang-box {
+  background: #ffffff;
+  width: 600px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 15px rgba(10, 10, 10, 0.2);
+}

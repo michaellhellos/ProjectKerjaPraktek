@@ -13,13 +13,11 @@ const TambahBarang = () => {
   const [fotoFile, setFotoFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // handle input text
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // handle foto
   const handleFotoChange = (e) => {
     const file = e.target.files[0];
     setFotoFile(file);
@@ -30,7 +28,6 @@ const TambahBarang = () => {
     }
   };
 
-  // handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,7 +41,7 @@ const TambahBarang = () => {
     data.append("namaBarang", formData.namaBarang);
     data.append("hargaBarang", formData.hargaBarang);
     data.append("stockBarang", formData.stockBarang);
-    data.append("fotoBarang", fotoFile); // ini penting: nama field harus sama dengan backend
+    data.append("fotoBarang", fotoFile);
 
     try {
       const res = await axios.post("http://localhost:3000/tambahbarang", data, {
@@ -61,12 +58,10 @@ const TambahBarang = () => {
         });
         setFotoFile(null);
         setPreview(null);
-      } else {
-        alert("❌ Gagal menambahkan barang: " + res.data.message);
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("Terjadi kesalahan: " + (err.response?.data?.message || err.message));
+      alert("Terjadi kesalahan: " + err.message);
     }
   };
 
@@ -75,7 +70,7 @@ const TambahBarang = () => {
       <div className="tambahbarang-box">
         <h2>Tambah Barang Baru</h2>
 
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>ID Barang</label>
             <input
@@ -124,41 +119,32 @@ const TambahBarang = () => {
             />
           </div>
 
-          {/* === BAGIAN FOTO BARANG === */}
-          <div className="form-group">
-            <label>Foto Barang</label>
+          {/* FIX ✅ hanya 1 input file + ada name + required */}
+          <div className="upload-wrapper">
+            <label htmlFor="fotoBarang" className="upload-btn">
+              Pilih Foto Barang
+            </label>
             <input
-              type="file"
+              id="fotoBarang"
               name="fotoBarang"
+              type="file"
               accept="image/*"
               onChange={handleFotoChange}
+              hidden
               required
             />
           </div>
 
-          {/* Preview Foto */}
           {preview && (
             <div className="preview">
-              <p>Preview Gambar:</p>
-              <img
-                src={preview}
-                alt="Preview"
-                style={{
-                  width: "200px",
-                  height: "200px",
-                  objectFit: "cover",
-                  borderRadius: "10px",
-                }}
-              />
+              <img src={preview} alt="Preview Barang" />
             </div>
           )}
 
           <div className="btn-group">
-            <button type="submit" className="btn-save">
-              Simpan
-            </button>
+            <button type="submit" className="btn-save">Simpan</button>
             <button
-              type="reset"
+              type="button"
               className="btn-reset"
               onClick={() => {
                 setFormData({
@@ -174,6 +160,7 @@ const TambahBarang = () => {
               Reset
             </button>
           </div>
+
         </form>
       </div>
     </div>

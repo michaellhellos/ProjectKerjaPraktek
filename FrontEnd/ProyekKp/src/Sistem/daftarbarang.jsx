@@ -1,29 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaSearch, FaEdit, FaTrash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./daftarbarang.css";
 
 const DaftarBarang = () => {
   const [search, setSearch] = useState("");
-  const [activeMenu, setActiveMenu] = useState("barang"); // ✅ Tambah ini
+  const [activeMenu, setActiveMenu] = useState("barang");
+  const [daftarBarang, setDaftarBarang] = useState([]);
   const navigate = useNavigate();
+
+  // ✅ Load Data dari Backend
+  const fetchBarang = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/barang");
+      setDaftarBarang(res.data.data);
+    } catch (err) {
+      console.error("Gagal mengambil data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBarang();
+  }, []);
 
   const handleTambahBarang = () => {
     navigate("/Sistem/tambahbarang");
   };
 
-  const daftarBarang = [
-    { id: "SKU001", nama: "Koper Kabin Hard Case", tipe: "Hard Case", harga: "Rp 750.000" },
-    { id: "SKU002", nama: "Tas Ransel Laptop", tipe: "Backpack", harga: "Rp 450.000" },
-    { id: "SKU003", nama: "Koper Medium Soft Case", tipe: "Soft Case", harga: "Rp 950.000" },
-    { id: "SKU004", nama: "Duffel Bag Olahraga", tipe: "Duffel Bag", harga: "Rp 350.000" },
-    { id: "SKU005", nama: "Koper Besar Hard Case", tipe: "Hard Case", harga: "Rp 1.250.000" },
-    { id: "SKU006", nama: "Tas Selempang Travel", tipe: "Lainnya", harga: "Rp 250.000" },
-    { id: "SKU007", nama: "Koper Anak Lucu", tipe: "Hard Case", harga: "Rp 600.000" },
-  ];
+  const handleDelete = async (id) => {
+    if (!window.confirm("Yakin ingin menghapus barang ini?")) return;
+
+    try {
+      await axios.delete(`http://localhost:3000/barang/${id}`);
+      alert("Barang berhasil dihapus!");
+
+      // ✅ Refresh data setelah delete
+      fetchBarang();
+    } catch (err) {
+      console.error("Gagal menghapus barang:", err);
+      alert("Gagal menghapus barang!");
+    }
+  };
 
   const filteredBarang = daftarBarang.filter((item) =>
-    item.nama.toLowerCase().includes(search.toLowerCase())
+    item.namaBarang.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleMenuClick = (key) => {
@@ -37,8 +58,6 @@ const DaftarBarang = () => {
 
   return (
     <div className="barang-container">
-
-      {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="sidebar-title">Admin</h2>
         <p className="sidebar-role">Warehouse Manager</p>
@@ -51,7 +70,6 @@ const DaftarBarang = () => {
         </ul>
       </aside>
 
-      {/* Main Content */}
       <div className="main-area">
         <h2 className="page-title">Daftar Barang</h2>
 
@@ -81,28 +99,29 @@ const DaftarBarang = () => {
               <tr>
                 <th>ID</th>
                 <th>Nama Barang</th>
-                <th>Tipe</th>
                 <th>Harga</th>
+                <th>Stock</th>
                 <th>Aksi</th>
               </tr>
             </thead>
-
             <tbody>
-              {filteredBarang.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.id}</td>
-                  <td>{item.nama}</td>
-                  <td>{item.tipe}</td>
-                  <td>{item.harga}</td>
+              {filteredBarang.map((item) => (
+                <tr key={item.idBarang}>
+                  <td>{item.idBarang}</td>
+                  <td>{item.namaBarang}</td>
+                  <td>{item.hargaBarang}</td>
+                  <td>{item.stockBarang}</td>
                   <td className="action-col">
                     <button className="btn-edit"><FaEdit /></button>
-                    <button className="btn-delete"><FaTrash /></button>
+                    <button className="btn-delete" onClick={() => handleDelete(item.idBarang)}>
+                      <FaTrash />
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
-
           </table>
+
         </div>
       </div>
     </div>

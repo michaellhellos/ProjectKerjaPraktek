@@ -1,142 +1,115 @@
-.add-container {
+/* === Container Background === */
+.tambahbarang-container {
   display: flex;
-  background: #f8fafc;
+  justify-content: center;
+  align-items: flex-start;
+  background: #0b132b;
   min-height: 100vh;
-  font-family: Arial, sans-serif;
+  padding: 60px 20px;
 }
 
-.sidebar {
-  width: 250px;
-  background: #0f172a;
-  color: white;
-  padding: 25px 20px;
+/* === Box Container Form === */
+.tambahbarang-box {
+  background: #ffffff;
+  width: 700px;
+  padding: 50px;
+  border-radius: 18px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-.sidebar-title {
-  font-size: 22px;
-  font-weight: bold;
+/* === Title === */
+h2 {
+  text-align: center;
+  margin-bottom: 35px;
+  color: #1c2541;
+  font-size: 26px;
+  font-weight: 700;
 }
 
-.sidebar-subtitle {
-  font-size: 14px;
-  color: #94a3b8;
-  margin-bottom: 25px;
+/* === Form Group === */
+.form-group {
+  margin-bottom: 22px;
 }
 
-.sidebar-menu li {
-  list-style: none;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 8px;
-}
-
-.sidebar-menu li:hover,
-.sidebar-menu .active {
-  background: #1d4ed8;
-}
-
-.form-area {
-  flex: 1;
-  padding: 30px 50px;
-}
-
-.page-title {
-  font-size: 28px;
+label {
   font-weight: 600;
-  margin-bottom: 25px;
+  margin-bottom: 8px;
+  display: block;
+  color: #1c2541;
+  font-size: 15px;
 }
 
-.form-box {
-  background: white;
-  padding: 30px;
+/* === Input Fields === */
+input[type="text"],
+input[type="number"],
+input[type="file"] {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #2f3542;
+  color: white;
+  outline: none;
+  font-size: 15px;
+}
+
+input::placeholder {
+  color: #dcdcdc;
+}
+
+/* === On Focus Field Highlight === */
+input:focus {
+  border: 2px solid #3a506b;
+}
+
+/* === Preview Gambar === */
+.preview {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.preview img {
+  width: 100%;
+  max-height: 350px;
   border-radius: 12px;
-}
-
-.upload-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 25px;
-}
-
-.upload-box {
-  width: 120px;
-  height: 120px;
-  border: 2px dashed #94a3b8;
-  border-radius: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #475569;
-  cursor: pointer;
-  text-align: center;
-  overflow: hidden;
-}
-
-.upload-box img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
+  border: 2px solid #1c2541;
 }
 
-.upload-box input {
-  display: none;
+/* === Button Groups === */
+.btn-group {
+  margin-top: 35px;
+  display: flex;
+  gap: 20px;
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-}
-
-.full {
-  grid-column: span 2;
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background: #2f3640;
-  color: white;
-}
-
-.radio-group label {
-  margin-right: 18px;
-}
-
-textarea {
-  height: 70px;
-}
-
-.ktp {
-  border-radius: 8px;
-  border: 2px dashed #94a3b8;
-  padding: 20px;
-  text-align: center;
-}
-
-.form-actions {
-  text-align: right;
-  margin-top: 25px;
-}
-
-.btn-cancel {
-  padding: 8px 16px;
+.btn-save,
+.btn-reset {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
   border: none;
-  border-radius: 6px;
-  background: #94a3b8;
-  color: white;
-  margin-right: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
 }
 
-.btn-submit {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background: #2563eb;
+/* Warna Button */
+.btn-save {
+  background: #3a66ff;
   color: white;
+}
+
+.btn-reset {
+  background: #e63946;
+  color: white;
+}
+
+/* Hover Effect */
+.btn-save:hover {
+  background: #1e44cc;
+}
+
+.btn-reset:hover {
+  background: #b02a37;
 }

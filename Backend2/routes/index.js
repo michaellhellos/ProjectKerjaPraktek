@@ -1,13 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
+const router = express.Router();
 const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
 
+
 const Admin = require("../Model/Admin");
 const KepalaGudang = require("../Model/KepalaGudang");
 const Karyawan = require("../Model/Karyawan");
+const Product = require("../Model/Product");
 
 const app = express();
 app.use(express.json());
@@ -17,32 +20,31 @@ app.use(cors());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // === Koneksi MongoDB ===
-mongoose.connect("mongodb://localhost:27017/CvSemogaJadiJaya", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB Connected"))
-.catch((err) => console.log("❌ Error MongoDB:", err));
-
-// === Konfigurasi Multer ===
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let baseFolder = "";
     let subfolder = "";
 
-    // Tentukan folder utama berdasarkan route/form
+    // ✅ Tentukan folder berdasarkan route
     if (req.originalUrl.includes("/karyawan")) {
       baseFolder = "karyawan";
       if (file.fieldname === "foto") subfolder = "foto";
       else if (file.fieldname === "ktp") subfolder = "ktp";
-    } else if (req.originalUrl.includes("/product")) {
+    } 
+    else if (req.originalUrl.includes("/tambahbarang")) { 
+      // ✅ Untuk Product
       baseFolder = "product";
       if (file.fieldname === "fotoBarang") subfolder = "foto";
     }
+    else if (req.originalUrl.includes("/retur")) { 
+      // ✅ Untuk Retur
+      baseFolder = "retur";
+      if (file.fieldname === "fotoBukti") subfolder = "foto";
+    }
 
-    // Path lengkap upload
-    const uploadPath = path.join(__dirname, `../uploads/${baseFolder}`, subfolder);
-    fs.mkdirSync(uploadPath, { recursive: true }); // buat folder otomatis
+    // Buat folder otomatis jika belum ada
+    const uploadPath = path.join(__dirname, `../uploads/${baseFolder}/${subfolder}`);
+    fs.mkdirSync(uploadPath, { recursive: true });
 
     cb(null, uploadPath);
   },
@@ -50,9 +52,8 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const uniqueName = Date.now() + "-" + file.originalname;
     cb(null, uniqueName);
-  },
+  }
 });
-
 
 
 const upload = multer({ storage });
@@ -143,7 +144,7 @@ app.put("/updateStatus/:id", async (req, res) => {
   }
 });
 //Tambah barang
-router.post("/tambahbarang", upload.single("fotoBarang"), async (req, res) => {
+app.post("/tambahbarang", upload.single("fotoBarang"), async (req, res) => {
   try {
     const { idBarang, namaBarang, hargaBarang, stockBarang } = req.body;
 
@@ -178,6 +179,82 @@ router.post("/tambahbarang", upload.single("fotoBarang"), async (req, res) => {
     });
   }
 });
+//get barang 
+app.get("/barang", async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json({
+      success: true,
+      data: products,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data barang",
+      error: err.message,
+    });
+  }
+});
+//delete by id
+app.delete("/barang/:id", async (req, res) => {
+  try {
+    const deletedProduct = await Product.findOneAndDelete({ idBarang: req.params.id });
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Barang tidak ditemukan",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Barang berhasil dihapus!",
+      data: deletedProduct,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Gagal menghapus barang",
+      error: err.message,
+    });
+  }
+});
+app.post("/retur", upload.single("fotoBukti"), async (req, res) => {
+  try {
+    const { idBarang, namaBarang, jumlah } = req.body;
+
+    if (!idBarang || !namaBarang || !jumlah) {
+      return res.status(400).json({
+        success: false,
+        message: "Semua field harus diisi!",
+      });
+    }
+
+    const newRetur = new Retur({
+      idBarang,
+      namaBarang,
+      jumlah,
+      fotoBukti: req.file ? `/uploads/retur/${req.file.filename}` : null,
+    });
+
+    await newRetur.save();
+
+    res.json({
+      success: true,
+      message: "Data retur berhasil ditambahkan!",
+      data: newRetur,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Gagal menambahkan retur.",
+      error: err.message,
+    });
+  }
+});
+
 // === Jalankan Server ===
 app.listen(3000, () => {
   console.log("🚀 Server berjalan di http://localhost:3000");
