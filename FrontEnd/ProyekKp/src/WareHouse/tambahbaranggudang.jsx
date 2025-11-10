@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { db, storage } from "../firebase"; // pastikan path ini sesuai
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import axios from "axios";
 import "./tambahbaranggudang.css";
 
 const TambahBarangGudang = () => {
@@ -14,47 +12,46 @@ const TambahBarangGudang = () => {
     fotoBarang: null,
   });
 
+  const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Handle input form
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+    
     if (name === "fotoBarang") {
-      setFormData({ ...formData, fotoBarang: files[0] });
+      const file = files[0];
+      setFormData({ ...formData, fotoBarang: file });
+
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        setPreviewImage(imageUrl);
+      }
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      let fotoURL = "";
-
-      // Upload foto ke Storage (jika ada)
+      const data = new FormData();
+      data.append("idBarang", formData.idBarang);
+      data.append("namaBarang", formData.namaBarang);
+      data.append("jumlahBarang", formData.jumlah);
+      data.append("tipeBarang", formData.tipeBarang);
+      data.append("tanggalMasuk", formData.tanggalMasuk);
       if (formData.fotoBarang) {
-        const storageRef = ref(storage, `barang/${formData.idBarang}_${formData.fotoBarang.name}`);
-        await uploadBytes(storageRef, formData.fotoBarang);
-        fotoURL = await getDownloadURL(storageRef);
+        data.append("fotoBarang", formData.fotoBarang);
       }
 
-      // Simpan data ke Firestore
-      await addDoc(collection(db, "barang"), {
-        idBarang: formData.idBarang,
-        namaBarang: formData.namaBarang,
-        jumlah: Number(formData.jumlah),
-        tipeBarang: formData.tipeBarang,
-        tanggalMasuk: formData.tanggalMasuk,
-        fotoURL,
-        createdAt: serverTimestamp(),
+      await axios.post("http://localhost:3000/barangmasuk", data, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
-      alert("✅ Data Barang berhasil disimpan!");
+      alert("✅ Data Barang Berhasil Disimpan!");
 
-      // Reset form
       setFormData({
         idBarang: "",
         namaBarang: "",
@@ -63,9 +60,11 @@ const TambahBarangGudang = () => {
         tanggalMasuk: "",
         fotoBarang: null,
       });
+      setPreviewImage(null);
+
     } catch (error) {
-      console.error("Gagal menyimpan data:", error);
-      alert("❌ Gagal menyimpan data barang!");
+      console.error(error);
+      alert("❌ Gagal menyimpan data!");
     }
 
     setLoading(false);
@@ -73,7 +72,7 @@ const TambahBarangGudang = () => {
 
   return (
     <div className="tambah-container">
-      {/* Sidebar */}
+
       <aside className="sidebar">
         <div className="profile">
           <div className="profile-icon">A</div>
@@ -81,17 +80,16 @@ const TambahBarangGudang = () => {
         </div>
 
         <nav className="nav-menu">
-          <a href="#">📊 Dashboard</a>
-          <a href="#">📦 Stock Gudang</a>
-          <a href="#" className="active">➕ Tambah Barang Masuk</a>
-          <a href="#">📤 Barang Keluar</a>
-          <a href="#">↩️ Return Barang</a>
+          <a href="/WareHouse/warehouse">📊 Dashboard</a>
+          <a href="/WareHouse/gudangstockbarang">📦 Stock Gudang</a>
+          <a href="/WareHouse/tambahbaranggudang" className="active">➕ Tambah Barang Masuk</a>
+          <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
+          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>
 
         <button className="logout-btn">🚪 Keluar</button>
       </aside>
 
-      {/* Main Content */}
       <main className="main-content">
         <header>
           <h1>Add Incoming Goods</h1>
@@ -102,55 +100,27 @@ const TambahBarangGudang = () => {
           <h3>Tambah Barang Masuk</h3>
 
           <form onSubmit={handleSubmit}>
-            {/* Row 1 */}
+
+            {/* Input lainnya tetap sama */}
             <div className="form-row">
               <div className="form-group">
                 <label>ID Barang</label>
-                <input
-                  type="text"
-                  name="idBarang"
-                  placeholder="Contoh: TAS-008"
-                  value={formData.idBarang}
-                  onChange={handleChange}
-                  required
-                />
+                <input type="text" name="idBarang" value={formData.idBarang} onChange={handleChange} required />
               </div>
-
               <div className="form-group">
                 <label>Nama Barang</label>
-                <input
-                  type="text"
-                  name="namaBarang"
-                  placeholder="Contoh: Tas Carrier Consina 70L"
-                  value={formData.namaBarang}
-                  onChange={handleChange}
-                  required
-                />
+                <input type="text" name="namaBarang" value={formData.namaBarang} onChange={handleChange} required />
               </div>
             </div>
 
-            {/* Row 2 */}
             <div className="form-row">
               <div className="form-group">
                 <label>Jumlah Barang</label>
-                <input
-                  type="number"
-                  name="jumlah"
-                  value={formData.jumlah}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                />
+                <input type="number" name="jumlah" value={formData.jumlah} onChange={handleChange} min="0" required />
               </div>
-
               <div className="form-group">
                 <label>Tipe Barang</label>
-                <select
-                  name="tipeBarang"
-                  value={formData.tipeBarang}
-                  onChange={handleChange}
-                  required
-                >
+                <select name="tipeBarang" value={formData.tipeBarang} onChange={handleChange} required>
                   <option value="">Pilih Tipe</option>
                   <option value="Ransel">Ransel</option>
                   <option value="Selempang">Selempang</option>
@@ -160,38 +130,46 @@ const TambahBarangGudang = () => {
               </div>
             </div>
 
-            {/* Row 3 */}
-            <div className="form-row">
-              <div className="form-group">
-                <label>Tanggal Masuk</label>
-                <input
-                  type="date"
-                  name="tanggalMasuk"
-                  value={formData.tanggalMasuk}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label>Tanggal Masuk</label>
+              <input type="date" name="tanggalMasuk" value={formData.tanggalMasuk} onChange={handleChange} required />
             </div>
 
-            {/* Row 4 - Upload */}
-            <div className="form-group file-upload">
+            {/* ✅ Upload Area bagus & ada preview */}
+            <div className="form-group">
               <label>Foto Barang</label>
+
+              <div className="upload-area" onClick={() => document.getElementById("uploadFile").click()}>
+                {formData.fotoBarang ? (
+                  <span>{formData.fotoBarang.name}</span>
+                ) : (
+                  <span>Klik untuk pilih foto barang</span>
+                )}
+              </div>
+
               <input
+                id="uploadFile"
                 type="file"
                 name="fotoBarang"
-                accept="image/png, image/jpeg, image/gif"
+                accept="image/png,image/jpeg,image/jpg"
                 onChange={handleChange}
+                hidden
               />
+
+              {previewImage && (
+                <div className="preview-box">
+                  <img src={previewImage} alt="Preview Barang" className="preview-image" />
+                </div>
+              )}
             </div>
 
-            {/* Buttons */}
             <div className="button-row">
               <button type="button" className="btn-cancel">Batal</button>
               <button type="submit" className="btn-submit" disabled={loading}>
                 {loading ? "Menyimpan..." : "Simpan"}
               </button>
             </div>
+
           </form>
         </div>
       </main>

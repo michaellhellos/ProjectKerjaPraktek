@@ -9,15 +9,15 @@ const Warehouse = () => {
   const handleMenuClick = (key) => {
     setActiveMenu(key);
     if (key === "dashboard") {
-      navigate("/Sistem/sistem");
+      navigate("/WareHouse/warehouse");
     } else if (key === "stock") {
-      navigate("/Sistem/stockgudang");
+      navigate("/WareHouse/gudangstockbarang");
     } else if (key === "tambahMasuk") {
-      navigate("/Sistem/tambahbaranggudang");
+      navigate("/WareHouse/tambahbaranggudang");
     } else if (key === "barangKeluar") {
-      navigate("/Sistem/tambahbarangkeluar");
+      navigate("/WareHouse/tambahbarangkeluar");
     } else if (key === "retur") {
-      navigate("/Sistem/returgudang");
+      navigate("/WareHouse/returgudang");
     }
   };
 

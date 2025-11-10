@@ -1,51 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./gudangstockbarang.css";
 
 const GudangStockBarang = () => {
-  const dataBarang = [
-    {
-      id: "TAS-001",
-      nama: "Tas Ransel Gunung Eiger 60L",
-      tipe: "Ransel",
-      stock: 50,
-      tanggal: "2023-05-10",
-    },
-    {
-      id: "TAS-002",
-      nama: "Tas Selempang Kulit Pria",
-      tipe: "Selempang",
-      stock: 120,
-      tanggal: "2023-05-12",
-    },
-    {
-      id: "TAS-003",
-      nama: "Koper Kabin Polo 20 inch",
-      tipe: "Koper",
-      stock: 75,
-      tanggal: "2023-05-15",
-    },
-    {
-      id: "TAS-004",
-      nama: "Tas Laptop Anti Air",
-      tipe: "Ransel",
-      stock: 85,
-      tanggal: "2023-04-20",
-    },
-    {
-      id: "TAS-005",
-      nama: "Tas Pinggang Sporty",
-      tipe: "Lainnya",
-      stock: 200,
-      tanggal: "2023-05-18",
-    },
-    {
-      id: "TAS-006",
-      nama: "Koper Bagasi American Tourister",
-      tipe: "Koper",
-      stock: 40,
-      tanggal: "2023-05-01",
-    },
-  ];
+  const [dataBarang, setDataBarang] = useState([]);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetchDataBarang();
+  }, []);
+
+  const fetchDataBarang = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/barangmasuk");
+      setDataBarang(res.data.data || []); 
+    } catch (err) {
+      console.error("Gagal mengambil data:", err);
+    }
+  };
+
+  const filteredData = dataBarang.filter((barang) =>
+    barang.namaBarang?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="gudang-container">
@@ -57,11 +33,11 @@ const GudangStockBarang = () => {
         </div>
 
         <nav className="nav-menu">
-          <a href="#">📊 Dashboard</a>
-          <a href="#" className="active">📦 Stock Gudang</a>
-          <a href="#">➕ Tambah Barang Masuk</a>
-          <a href="#">📤 Barang Keluar</a>
-          <a href="#">↩️ Return Barang</a>
+          <a href="/WareHouse/warehouse">📊 Dashboard</a>
+          <a href="/WareHouse/gudangstockbarang" className="active">📦 Stock Gudang</a>
+          <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
+          <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
+          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>
 
         <button className="logout-btn">🚪 Keluar</button>
@@ -76,7 +52,12 @@ const GudangStockBarang = () => {
 
         {/* Search bar */}
         <div className="search-container">
-          <input type="text" placeholder="🔍 Cari barang..." />
+          <input
+            type="text"
+            placeholder="🔍 Cari barang..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
 
         {/* Table */}
@@ -93,23 +74,29 @@ const GudangStockBarang = () => {
               </tr>
             </thead>
             <tbody>
-              {dataBarang.map((barang) => (
-                <tr key={barang.id}>
-                  <td>{barang.id}</td>
-                  <td>{barang.nama}</td>
-                  <td>
-                    <span className={`badge ${barang.tipe.toLowerCase()}`}>
-                      {barang.tipe}
-                    </span>
-                  </td>
-                  <td>{barang.stock}</td>
-                  <td>{barang.tanggal}</td>
-                  <td className="aksi">
-                    <button className="edit-btn">✏️</button>
-                    <button className="view-btn">👁️</button>
-                  </td>
+              {filteredData.length > 0 ? (
+                filteredData.map((barang, index) => (
+                  <tr key={index}>
+                    <td>{barang.idBarang}</td>
+                    <td>{barang.namaBarang}</td>
+                    <td>
+                      <span className={`badge ${barang.tipeBarang?.toLowerCase()}`}>
+                        {barang.tipeBarang}
+                      </span>
+                    </td>
+                    <td>{barang.jumlahBarang}</td>
+                    <td>{barang.tanggalMasuk?.slice(0, 10)}</td>
+                    <td className="aksi">
+                      <button className="edit-btn">✏️</button>
+                      <button className="view-btn">👁️</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: "center" }}>Tidak ada data</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

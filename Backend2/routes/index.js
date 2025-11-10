@@ -11,6 +11,10 @@ const Admin = require("../Model/Admin");
 const KepalaGudang = require("../Model/KepalaGudang");
 const Karyawan = require("../Model/Karyawan");
 const Product = require("../Model/Product");
+const BarangMasukGudang = require("../Model/BarangMasuk");
+const BarangKeluarGudang = require("../Model/BarangKeluar");
+
+
 
 const app = express();
 app.use(express.json());
@@ -18,6 +22,12 @@ app.use(cors());
 
 // === Static folder untuk akses file upload ===
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+mongoose.connect("mongodb://127.0.0.1:27017/CvSemogaJadiJaya", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => console.error("❌ MongoDB Connection Error:", err));
 
 // === Koneksi MongoDB ===
 const storage = multer.diskStorage({
@@ -40,7 +50,15 @@ const storage = multer.diskStorage({
       // ✅ Untuk Retur
       baseFolder = "retur";
       if (file.fieldname === "fotoBukti") subfolder = "foto";
-    }
+    }else if (req.originalUrl.includes("/barangmasuk")) { 
+      // ✅ Untuk Retur
+      baseFolder = "barangmasuk";
+      if (file.fieldname === "fotoBarang") subfolder = "foto";
+    }else if (req.originalUrl.includes("/barangkeluar")) {
+  baseFolder = "tambahbarangkeluar";
+  if (file.fieldname === "fotoInvoice") subfolder = "foto";
+}
+
 
     // Buat folder otomatis jika belum ada
     const uploadPath = path.join(__dirname, `../uploads/${baseFolder}/${subfolder}`);
@@ -70,7 +88,63 @@ app.post("/login", async (req, res) => {
 
   return res.status(401).json({ message: "Email atau Password salah!" });
 });
+//add kepala gudang 
+app.post("/register-kepalagudang",
+  upload.fields([
+    { name: "foto", maxCount: 1 },
+    { name: "ktp", maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      console.log("BODY:", req.body);
+      console.log("FILES:", req.files);
 
+      const { Nama_Depan, Nama_Belakang, Email, Password } = req.body;
+
+      if (!Nama_Depan || !Nama_Belakang || !Email || !Password) {
+        return res.status(400).json({
+          success: false,
+          message: "Semua field harus diisi!"
+        });
+      }
+
+      const exist = await KepalaGudang.findOne({ Email });
+      if (exist) {
+        return res.status(409).json({
+          success: false,
+          message: "Email sudah terdaftar!"
+        });
+      }
+
+      const fotoUrl = req.files.foto ? req.files.foto[0].path : "";
+      const ktpUrl = req.files.ktp ? req.files.ktp[0].path : "";
+
+      const newKepalaGudang = new KepalaGudang({
+        Nama_Depan,
+        Nama_Belakang,
+        Email,
+        Password,
+        KTP: ktpUrl, // ✅ simpan file path
+        Foto: fotoUrl
+      });
+
+      await newKepalaGudang.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Berhasil menambahkan Kepala Gudang!",
+        data: newKepalaGudang
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan server!"
+      });
+    }
+  }
+);
 // === Route Tambah Karyawan ===
 app.post(
   "/addKaryawan",
@@ -254,6 +328,125 @@ app.post("/retur", upload.single("fotoBukti"), async (req, res) => {
     });
   }
 });
+//kepala gudang 
+app.post(
+  "/barangmasuk",
+  upload.any(),  // ✅ terima semua file dulu untuk debugging
+  async (req, res) => {
+    try {
+      console.log(">>> BODY:", req.body);
+      console.log(">>> FILES:", req.files);
+
+      const fotoFile = req.files?.find(f => f.fieldname === "fotoBarang");
+
+      const newData = new BarangMasukGudang({
+        idBarang: req.body.idBarang,
+        namaBarang: req.body.namaBarang,
+        jumlahBarang: req.body.jumlahBarang,
+        tipeBarang: req.body.tipeBarang,
+        tanggalMasuk: req.body.tanggalMasuk,
+        fotoBarang: fotoFile ? fotoFile.filename : null
+      });
+
+      await newData.save();
+
+      res.status(201).json({
+        success: true,
+        message: "✅ Barang masuk berhasil ditambahkan (Debug Mode)",
+        files: req.files,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "❌ Gagal menyimpan data",
+      });
+    }
+  }
+);
+//get
+app.get("/barangmasuk", async (req, res) => {
+  try {
+    const data = await BarangMasukGudang.find();
+
+    res.status(200).json({
+      success: true,
+      message: "✅ Data barang masuk berhasil diambil",
+      data: data
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "❌ Gagal mengambil data",
+    });
+  }
+});
+//barang keluar
+app.post("/barangkeluar", upload.single("fotoInvoice"), async (req, res) => {
+  try {
+    const { idBarang, namaBarang, jumlahKeluar, tanggalKeluar, karyawan } = req.body;
+
+    if (!idBarang || !namaBarang || !jumlahKeluar || !tanggalKeluar || !karyawan) {
+      return res.status(400).json({ message: "Semua field harus diisi!" });
+    }
+
+    const barangMasuk = await BarangMasukGudang.findOne({ idBarang });
+
+    if (!barangMasuk) {
+      return res.status(404).json({ message: "ID Barang tidak ditemukan!" });
+    }
+
+    // Cek stok cukup atau tidak
+    if (barangMasuk.jumlahBarang < jumlahKeluar) {
+      return res.status(400).json({
+        message: `Stok tidak cukup! Stok tersedia: ${barangMasuk.jumlahBarang}`
+      });
+    }
+
+    // Kurangi stok
+    barangMasuk.jumlahBarang -= Number(jumlahKeluar);
+    await barangMasuk.save();
+
+    const newBarangKeluar = new BarangKeluarGudang({
+      idBarang,
+      namaBarang,
+      jumlahKeluar,
+      tanggalKeluar,
+      karyawan,
+      fotoInvoice: req.file ? req.file.filename : null
+    });
+
+    await newBarangKeluar.save();
+
+    res.status(201).json({
+      message: "Barang keluar berhasil ditambahkan!",
+      data: newBarangKeluar
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error!" });
+  }
+});
+app.get("/barangkeluar", async (req, res) => {
+  try {
+    const data = await BarangKeluarGudang.find().sort({ tanggalKeluar: -1 });
+    res.status(200).json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error!"
+    });
+  }
+});
+
+
 
 // === Jalankan Server ===
 app.listen(3000, () => {

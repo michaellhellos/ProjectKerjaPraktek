@@ -2,9 +2,11 @@
   display: flex;
   background-color: #0f1c2e;
   color: white;
-  height: 100vh;
+  min-height: 100vh; /* ✅ supaya bisa panjang ke bawah */
   font-family: "Poppins", sans-serif;
+  overflow-y: auto; /* ✅ enable scroll */
 }
+
 
 /* Sidebar */
 .sidebar {
@@ -129,15 +131,19 @@ input[type="file"] {
 .upload-area {
   border: 2px dashed #d1d5db;
   border-radius: 10px;
-  padding: 25px;
+  padding: 20px;
   text-align: center;
   color: #6b7280;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 .upload-area:hover {
   border-color: #2e5bff;
+  background-color: #eef2ff;
+  color: #1e3acc;
 }
+
 
 .upload-area span {
   color: #2e5bff;
@@ -179,4 +185,18 @@ input[type="file"] {
 
 .btn-submit:hover {
   background-color: #1e3acc;
+}
+.preview-box {
+  margin-top: 12px;
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #d1d5db;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

@@ -18,6 +18,8 @@ const Sistem = () => {
       navigate("/Sistem/retur"); 
     }else if (key === "dashboard") {
       navigate("/Sistem/sistem"); 
+    }else if (key === "EditProfile") {
+      navigate("/Sistem/editprofile"); 
     }
   };
 
@@ -25,8 +27,19 @@ const Sistem = () => {
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <h2 className="sidebar-title">Admin</h2>
-        <p className="sidebar-role">Warehouse Manager</p>
+       <div className="profile-section" onClick={() => handleMenuClick("EditProfile")}
+>
+  <img
+    src="/images/profile.png"
+    alt="Profile"
+    className="profile-image"
+  />
+  <div>
+    <h2 className="sidebar-title">Admin</h2>
+    <p className="sidebar-role">Warehouse Manager</p>
+  </div>
+</div>
+
         <ul className="sidebar-menu">
           <li
             className={activeMenu === "dashboard" ? "active" : ""}

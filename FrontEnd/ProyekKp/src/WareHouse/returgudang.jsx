@@ -40,6 +40,13 @@ function ReturGudang() {
     <div className="retur-container">
       <h2 className="title">Goods Return</h2>
       <p className="subtitle">Create and manage goods return requests.</p>
+      <nav className="nav-menu">
+          <a href="/WareHouse/warehouse">📊 Dashboard</a>
+          <a href="/WareHouse/gudangstockbarang" >📦 Stock Gudang</a>
+          <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
+          <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
+          <a href="/WareHouse/returgudang" className="active">↩️ Return Barang</a>
+        </nav>
 
       <div className="retur-card">
         <div className="card-header">

@@ -13,6 +13,7 @@ import StockGudang from "./Sistem/stockgudang";
 import DaftarBarang from "./Sistem/daftarbarang";
 import TambahBarang from "./Sistem/tambahbarang";
 import Retur from "./Sistem/retur";
+import EditProfile from "./Sistem/editprofile";
 
 // Kepala Gudang
 import Warehouse from "./WareHouse/warehouse";
@@ -97,13 +98,23 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/Sistem/editprofile"
+        element={
+          <ProtectedRoute allow={["admin"]}>
+            <EditProfile />
+          </ProtectedRoute>
+        }
+      />
+      
 
       {/* ✅ KEPALA GUDANG ONLY */}
-      <Route
+       <Route
         path="/WareHouse/warehouse"
         element={
           <ProtectedRoute allow={["kepala_gudang"]}>
-            <Warehouse />
+            {/* Gunakan nama komponen yang benar */}
+            <Warehouse /> 
           </ProtectedRoute>
         }
       />
