@@ -383,6 +383,30 @@ app.get("/barangmasuk", async (req, res) => {
     });
   }
 });
+//total barang masuk
+// ✅ Total Barang (semua stok saat ini)
+app.get("/totalbarang", async (req, res) => {
+  try {
+    const data = await BarangMasukGudang.find();
+    let total = 0;
+
+    data.forEach((item) => {
+      total += item.jumlahBarang;
+    });
+
+    res.status(200).json({
+      success: true,
+      totalBarang: total,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "❌ Gagal mengambil total barang",
+    });
+  }
+});
+
 //barang keluar
 app.post("/barangkeluar", upload.single("fotoInvoice"), async (req, res) => {
   try {

@@ -78,7 +78,7 @@ const TambahBarangKeluar = () => {
         <nav className="nav-menu">
           <a href="/WareHouse/warehouse">📊 Dashboard</a>
           <a href="/WareHouse/gudangstockbarang">📦 Stock Gudang</a>
-          <a href="/WareHouse/tambahbaranggudang">➕ Barang Masuk</a>
+          <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
           <a href="/WareHouse/tambahbarangkeluar" className="active">📤 Barang Keluar</a>
           <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>

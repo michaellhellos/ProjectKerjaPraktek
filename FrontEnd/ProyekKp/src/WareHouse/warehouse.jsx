@@ -1,25 +1,89 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import "./warehouse.css";
 
 const Warehouse = () => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
-  const handleMenuClick = (key) => {
-    setActiveMenu(key);
-    if (key === "dashboard") {
-      navigate("/WareHouse/warehouse");
-    } else if (key === "stock") {
-      navigate("/WareHouse/gudangstockbarang");
-    } else if (key === "tambahMasuk") {
-      navigate("/WareHouse/tambahbaranggudang");
-    } else if (key === "barangKeluar") {
-      navigate("/WareHouse/tambahbarangkeluar");
-    } else if (key === "retur") {
-      navigate("/WareHouse/returgudang");
+  const [barangMasuk, setBarangMasuk] = useState(0);
+  const [barangKeluar, setBarangKeluar] = useState(0);
+  const [totalBarang, setTotalBarang] = useState(0);
+  const [chartData, setChartData] = useState([]);
+  const [pieData, setPieData] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const masukRes = await axios.get("http://localhost:3000/barangmasuk");
+      const keluarRes = await axios.get("http://localhost:3000/barangkeluar");
+      const totalRes = await axios.get("http://localhost:3000/totalbarang");
+
+      const masukData = masukRes.data.data;
+      const keluarData = keluarRes.data.data;
+      setTotalBarang(totalRes.data.totalBarang);
+
+      // Hitung total
+      const totalMasuk = masukData.reduce((sum, item) => sum + (item.jumlahBarang || 0), 0);
+      const totalKeluar = keluarData.reduce((sum, item) => sum + (item.jumlahKeluar || 0), 0);
+      setBarangMasuk(totalMasuk);
+      setBarangKeluar(totalKeluar);
+
+      // 🔹 Data chart per bulan
+      const perBulan = {};
+      masukData.forEach((item) => {
+        const bulan = new Date(item.tanggalMasuk).toLocaleString("id-ID", { month: "short" });
+        perBulan[bulan] = (perBulan[bulan] || 0) + item.jumlahBarang;
+      });
+      const barData = Object.entries(perBulan).map(([bulan, jumlah]) => ({
+        bulan,
+        jumlah,
+      }));
+      setChartData(barData);
+
+      // 🔸 Data pie (tipe barang)
+      const tipeCount = {};
+      masukData.forEach((item) => {
+        const tipe = item.tipeBarang || "Lainnya";
+        tipeCount[tipe] = (tipeCount[tipe] || 0) + item.jumlahBarang;
+      });
+      const pieChartData = Object.entries(tipeCount).map(([tipe, value]) => ({
+        name: tipe,
+        value,
+      }));
+      setPieData(pieChartData);
+    } catch (error) {
+      console.error("Gagal ambil data:", error);
     }
   };
+
+  const handleMenuClick = (key) => {
+    setActiveMenu(key);
+    if (key === "dashboard") navigate("/WareHouse/warehouse");
+    else if (key === "stock") navigate("/WareHouse/gudangstockbarang");
+    else if (key === "tambahMasuk") navigate("/WareHouse/tambahbaranggudang");
+    else if (key === "barangKeluar") navigate("/WareHouse/tambahbarangkeluar");
+    else if (key === "retur") navigate("/WareHouse/returgudang");
+  };
+
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA66CC", "#FF6666"];
 
   return (
     <div className="warehouse-container">
@@ -31,43 +95,19 @@ const Warehouse = () => {
         </div>
 
         <nav className="nav-menu">
-          <a
-            href="#"
-            onClick={() => handleMenuClick("dashboard")}
-            className={activeMenu === "dashboard" ? "active" : ""}
-          >
+          <a onClick={() => handleMenuClick("dashboard")} className={activeMenu === "dashboard" ? "active" : ""}>
             📊 Dashboard
           </a>
-
-          <a
-            href="#"
-            onClick={() => handleMenuClick("stock")}
-            className={activeMenu === "stock" ? "active" : ""}
-          >
+          <a onClick={() => handleMenuClick("stock")} className={activeMenu === "stock" ? "active" : ""}>
             📦 Stock Gudang
           </a>
-
-          <a
-            href="#"
-            onClick={() => handleMenuClick("tambahMasuk")}
-            className={activeMenu === "tambahMasuk" ? "active" : ""}
-          >
+          <a onClick={() => handleMenuClick("tambahMasuk")} className={activeMenu === "tambahMasuk" ? "active" : ""}>
             ➕ Tambah Barang Masuk
           </a>
-
-          <a
-            href="#"
-            onClick={() => handleMenuClick("barangKeluar")}
-            className={activeMenu === "barangKeluar" ? "active" : ""}
-          >
+          <a onClick={() => handleMenuClick("barangKeluar")} className={activeMenu === "barangKeluar" ? "active" : ""}>
             📤 Barang Keluar
           </a>
-
-          <a
-            href="#"
-            onClick={() => handleMenuClick("retur")}
-            className={activeMenu === "retur" ? "active" : ""}
-          >
+          <a onClick={() => handleMenuClick("retur")} className={activeMenu === "retur" ? "active" : ""}>
             ↩️ Return Barang
           </a>
         </nav>
@@ -75,100 +115,65 @@ const Warehouse = () => {
         <button className="logout-btn">🚪 Keluar</button>
       </aside>
 
-      {/* Main Dashboard */}
+      {/* Dashboard */}
       <main className="dashboard">
         <header>
-          <h1>Dashboard</h1>
-          <p>Welcome back, Acong! Here's your warehouse overview.</p>
+          <h1>Dashboard Gudang</h1>
+          <p>Welcome back, Acong! Berikut ringkasan gudangmu.</p>
         </header>
 
+        {/* Cards */}
         <section className="cards">
-          <div className="card">
+          <div className="card clickable" onClick={() => navigate("/WareHouse/gudangstockbarang")}>
             <h4>Total Barang Masuk</h4>
-            <h2>1,420</h2>
-            <p className="positive">↑ 15% vs last month</p>
+            <h2>{barangMasuk}</h2>
           </div>
-
-          <div className="card">
+          <div className="card clickable" onClick={() => navigate("/WareHouse/tambahbarangkeluar")}>
             <h4>Total Barang Keluar</h4>
-            <h2>875</h2>
-            <p className="positive">↑ 8% vs last month</p>
+            <h2>{barangKeluar}</h2>
           </div>
-
           <div className="card">
             <h4>Total Barang</h4>
-            <h2>5,210</h2>
-            <p className="negative">↓ 2.5% vs last month</p>
+            <h2>{totalBarang}</h2>
           </div>
         </section>
 
+        {/* Chart Section */}
         <section className="charts">
           <div className="chart-card">
-            <h3>Total Barang (Monthly)</h3>
-            <div className="bar-chart">
-              <div style={{ height: "40%" }}>
-                <span>400</span>
-                <label>Jan</label>
-              </div>
-              <div style={{ height: "30%" }}>
-                <span>300</span>
-                <label>Feb</label>
-              </div>
-              <div style={{ height: "60%" }}>
-                <span>600</span>
-                <label>Mar</label>
-              </div>
-              <div style={{ height: "80%" }}>
-                <span>800</span>
-                <label>Apr</label>
-              </div>
-              <div style={{ height: "50%" }}>
-                <span>500</span>
-                <label>Mei</label>
-              </div>
-              <div style={{ height: "70%" }}>
-                <span>700</span>
-                <label>Jun</label>
-              </div>
-            </div>
+            <h3>📈 Total Barang Masuk per Bulan</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="bulan" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="jumlah" fill="#0088FE" radius={[10, 10, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="chart-card">
-            <h3>Stock Tipe Barang</h3>
-            <div className="donut-chart">
-              <svg viewBox="0 0 36 36" className="circular-chart">
-                <path
-                  className="circle ransel"
-                  strokeDasharray="40, 100"
-                  d="M18 2.0845 a15.9155 15.9155 0 0 1 0 31.831 
-                     a15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="circle selempang"
-                  strokeDasharray="30, 100"
-                  d="M18 2.0845 a15.9155 15.9155 0 0 1 0 31.831 
-                     a15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="circle koper"
-                  strokeDasharray="20, 100"
-                  d="M18 2.0845 a15.9155 15.9155 0 0 1 0 31.831 
-                     a15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className="circle lainnya"
-                  strokeDasharray="10, 100"
-                  d="M18 2.0845 a15.9155 15.9155 0 0 1 0 31.831 
-                     a15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <ul>
-                <li><span className="dot ransel"></span> Ransel: 40%</li>
-                <li><span className="dot selempang"></span> Selempang: 30%</li>
-                <li><span className="dot koper"></span> Koper: 20%</li>
-                <li><span className="dot lainnya"></span> Lainnya: 10%</li>
-              </ul>
-            </div>
+            <h3>🍩 Persentase Tipe Barang</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </section>
       </main>
