@@ -26,6 +26,7 @@ import ReturGudang from "./WareHouse/returgudang";
 import HomePage from "./Karyawan/homePage";
 import Keranjang from "./Karyawan/keranjang";
 import Gudang from "./Karyawan/gudang";
+import UpdateProfile from "./Karyawan/UpdateProfile";
 
 function App() {
   return (
@@ -176,7 +177,17 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/Karyawan/updateprofile"
+        element={
+          <ProtectedRoute allow={["karyawan"]}>
+            <Gudang />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
+    
   );
 }
 

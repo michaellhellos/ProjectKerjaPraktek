@@ -8,6 +8,7 @@ const TambahKaryawan = () => {
   // === STATE FORM ===
   const [foto, setFoto] = useState(null);
   const [ktp, setKtp] = useState(null);
+
   const [namaLengkap, setNamaLengkap] = useState("");
   const [tempatLahir, setTempatLahir] = useState("");
   const [tanggalLahir, setTanggalLahir] = useState("");
@@ -17,17 +18,22 @@ const TambahKaryawan = () => {
   const [noTelepon, setNoTelepon] = useState("");
   const [agama, setAgama] = useState("");
 
-  // === KLIK BATAL ===
+  // === TAMBAHAN BARU UNTUK LOGIN ===
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // === BATAL ===
   const handleCancel = () => {
     navigate("/Sistem/managekariawan");
   };
 
-  // === KLIK SUBMIT ===
+  // === SUBMIT ===
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const formData = new FormData();
+
       formData.append("namaLengkap", namaLengkap);
       formData.append("tempatLahir", tempatLahir);
       formData.append("tanggalLahir", tanggalLahir);
@@ -37,10 +43,13 @@ const TambahKaryawan = () => {
       formData.append("noTelepon", noTelepon);
       formData.append("agama", agama);
 
+      // 🔹 DATA LOGIN BARU
+      formData.append("email", email);
+      formData.append("password", password);
+
       if (foto) formData.append("foto", foto);
       if (ktp) formData.append("ktp", ktp);
 
-      // 🔹 URL backend Node.js (bukan Firebase)
       const res = await fetch("http://localhost:3000/addKaryawan", {
         method: "POST",
         body: formData,
@@ -52,17 +61,15 @@ const TambahKaryawan = () => {
         alert(`✅ Karyawan berhasil ditambahkan dengan ID: ${data.idKaryawan}`);
         navigate("/Sistem/managekariawan");
       } else {
-        alert("❌ Gagal: " + data.error);
+        alert("❌ Gagal: " + data.message || data.error);
       }
     } catch (err) {
-      alert("❌ Gagal menyimpan: " + err.message);
+      alert("❌ Error: " + err.message);
     }
   };
 
   return (
     <div className="add-container">
-
-      {/* Sidebar */}
       <aside className="sidebar">
         <h2 className="sidebar-title">Admin</h2>
         <p className="sidebar-subtitle">Warehouse Manager</p>
@@ -76,7 +83,6 @@ const TambahKaryawan = () => {
         </ul>
       </aside>
 
-      {/* Form Area */}
       <div className="form-area">
         <h2 className="page-title">Tambah Karyawan</h2>
 
@@ -98,7 +104,6 @@ const TambahKaryawan = () => {
             </label>
           </div>
 
-          {/* Form Fields */}
           <div className="form-grid">
             <div>
               <label>Nama Lengkap</label>
@@ -106,6 +111,30 @@ const TambahKaryawan = () => {
                 type="text"
                 value={namaLengkap}
                 onChange={(e) => setNamaLengkap(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* === EMAIL BARU === */}
+            <div>
+              <label>Email Login</label>
+              <input
+                type="email"
+                placeholder="emailkaryawan@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* === PASSWORD BARU === */}
+            <div>
+              <label>Password Login</label>
+              <input
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -140,7 +169,7 @@ const TambahKaryawan = () => {
                     value="Laki-Laki"
                     onChange={(e) => setJenisKelamin(e.target.value)}
                     required
-                  />{" "}
+                  />
                   Laki-laki
                 </label>
                 <label>
@@ -149,7 +178,7 @@ const TambahKaryawan = () => {
                     name="gender"
                     value="Perempuan"
                     onChange={(e) => setJenisKelamin(e.target.value)}
-                  />{" "}
+                  />
                   Perempuan
                 </label>
               </div>

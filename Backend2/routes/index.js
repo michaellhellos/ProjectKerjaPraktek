@@ -5,7 +5,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
-
+const bwipjs = require("bwip-js");
 
 const Admin = require("../Model/Admin");
 const KepalaGudang = require("../Model/KepalaGudang");
@@ -13,8 +13,10 @@ const Karyawan = require("../Model/Karyawan");
 const Product = require("../Model/Product");
 const BarangMasukGudang = require("../Model/BarangMasuk");
 const BarangKeluarGudang = require("../Model/BarangKeluar");
+const Cart = require("../Model/Cart");
 
-
+const Pelanggan = require("../Model/Pelanggan");
+const Transaksi = require("../Model/Transaksi");
 
 const app = express();
 app.use(express.json());
@@ -80,14 +82,64 @@ const upload = multer({ storage });
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const admin = await Admin.findOne({ Email: email, Password: password });
-  if (admin) return res.json({ message: "Hello_Admin", role: "admin" });
+  try {
+    // 🔹 Check Admin
+    const admin = await Admin.findOne({ Email: email, Password: password });
+    if (admin) {
+      return res.json({
+        message: "Hello_Admin",
+        role: "admin",
+        user: admin,
+      });
+    }
 
-  const manager = await KepalaGudang.findOne({ Email: email, Password: password });
-  if (manager) return res.json({ message: "Hallo_KepalaGudang", role: "kepala_gudang" });
+    // 🔹 Check Kepala Gudang
+    const manager = await KepalaGudang.findOne({
+      Email: email,
+      Password: password,
+    });
+    if (manager) {
+      return res.json({
+        message: "Hallo_KepalaGudang",
+        role: "kepala_gudang",
+        user: manager,
+      });
+    }
 
-  return res.status(401).json({ message: "Email atau Password salah!" });
+    // 🔹 Check Karyawan
+    const karyawan = await Karyawan.findOne({
+      Email: email,
+      Password: password,
+    });
+
+    if (karyawan) {
+      // Jika karyawan dinonaktifkan (opsional)
+      if (karyawan.active === false) {
+        return res.status(403).json({
+          message: "Akun Anda telah dinonaktifkan!",
+        });
+      }
+
+      return res.json({
+        message: "Hallo_Karyawan",
+        role: "karyawan",
+        user: karyawan,
+      });
+    }
+
+    // Jika semua gagal
+    return res.status(401).json({
+      message: "Email atau Password salah!",
+    });
+
+  } catch (err) {
+    console.error("❌ Error Login:", err);
+    return res.status(500).json({
+      message: "Terjadi kesalahan server!",
+    });
+  }
 });
+
 //add kepala gudang 
 app.post("/register-kepalagudang",
   upload.fields([
@@ -164,10 +216,21 @@ app.post(
         noTelepon,
         agama,
         status,
+        email,
+        password
       } = req.body;
 
       const foto = req.files["foto"] ? req.files["foto"][0].path : null;
       const ktp = req.files["ktp"] ? req.files["ktp"][0].path : null;
+
+      // Cek email tidak boleh duplikat
+      const cekEmail = await Karyawan.findOne({ Email: email });
+      if (cekEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Email sudah digunakan!",
+        });
+      }
 
       const newKaryawan = new Karyawan({
         namaLengkap,
@@ -181,6 +244,8 @@ app.post(
         foto,
         ktp,
         status,
+        Email: email,
+        Password: password,
       });
 
       await newKaryawan.save();
@@ -188,7 +253,7 @@ app.post(
       res.json({
         success: true,
         message: "Karyawan berhasil ditambahkan!",
-        idKaryawan: newKaryawan.idKaryawan, // ✅ kirim ID custom ke frontend
+        idKaryawan: newKaryawan.idKaryawan,
       });
     } catch (err) {
       console.error("❌ Error:", err);
@@ -196,18 +261,20 @@ app.post(
     }
   }
 );
+
+
 app.get("/getKaryawan", async (req, res) => {
   try {
-    const karyawanList = await Karyawan.find().sort({ createdAt: 1 });
-    res.json({
-      success: true,
-      data: karyawanList,
-    });
+    const karyawan = await Karyawan.findOne({ Email: req.userEmail }); // contoh pakai session/email login
+    if (!karyawan) return res.json({ success: false });
+
+    res.json({ success: true, user: karyawan });
   } catch (err) {
-    console.error("❌ Error:", err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error(err);
+    res.json({ success: false });
   }
 });
+
 app.put("/updateStatus/:id", async (req, res) => {
   try {
     const { status } = req.body;
@@ -229,6 +296,7 @@ app.post("/tambahbarang", upload.single("fotoBarang"), async (req, res) => {
       });
     }
 
+    // 🔹 Simpan produk
     const newProduct = new Product({
       idBarang,
       namaBarang,
@@ -239,11 +307,38 @@ app.post("/tambahbarang", upload.single("fotoBarang"), async (req, res) => {
 
     await newProduct.save();
 
+    // =======================================================
+    // 🔹 GENERATE BARCODE BERDASARKAN idBarang
+    // =======================================================
+    const barcodePath = path.join(__dirname, "uploads/barcode");
+    if (!fs.existsSync(barcodePath)) fs.mkdirSync(barcodePath, { recursive: true });
+
+    const barcodeFile = `${idBarang}.png`;
+    const fullBarcodePath = path.join(barcodePath, barcodeFile);
+
+    await bwipjs.toBuffer({
+      bcid: "code128",   // tipe barcode
+      text: idBarang,     // isi barcode
+      scale: 3,
+      height: 10,
+      includetext: true,
+    }).then((png) => {
+      fs.writeFileSync(fullBarcodePath, png);
+    });
+
+    // Simpan URL barcode ke MongoDB (optional)
+    newProduct.barcode = `/uploads/barcode/${barcodeFile}`;
+    await newProduct.save();
+
+    // =======================================================
+
     res.json({
       success: true,
       message: "Barang berhasil ditambahkan!",
       data: newProduct,
+      barcode: `/uploads/barcode/${barcodeFile}`,  // ini bisa ditampilkan di frontend
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -469,6 +564,289 @@ app.get("/barangkeluar", async (req, res) => {
     });
   }
 });
+//karyawan
+app.post("/add-to-cart", async (req, res) => {
+  try {
+    const { productId, jumlah } = req.body;
+
+    // VALIDASI
+    if (!productId || !jumlah) {
+      return res.status(400).json({
+        success: false,
+        message: "Data tidak lengkap! (productId dan jumlah wajib)"
+      });
+    }
+
+    // AMBIL PRODUK
+    const produk = await Product.findById(productId);
+    if (!produk) {
+      return res.status(404).json({
+        success: false,
+        message: "Produk tidak ditemukan!"
+      });
+    }
+
+    if (produk.stockBarang < jumlah) {
+      return res.status(400).json({
+        success: false,
+        message: "Stok tidak mencukupi!"
+      });
+    }
+
+    // SIMPAN KE CART (TANPA KARYAWAN)
+    const newCart = new Cart({
+      productId,
+      jumlah
+    });
+
+    await newCart.save();
+
+    // KURANGI STOK PRODUK
+    produk.stockBarang -= jumlah;
+    await produk.save();
+
+    res.json({
+      success: true,
+      message: "Berhasil menambahkan ke keranjang!"
+    });
+
+  } catch (err) {
+    console.error("Error add-to-cart:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server!"
+    });
+  }
+});
+
+
+app.get("/keranjang", async (req, res) => {
+  try {
+    const cartItems = await Cart.find()
+      .populate("productId", "namaBarang hargaBarang stockBarang fotoBarang");
+
+    res.json({
+      success: true,
+      data: cartItems
+    });
+
+  } catch (err) {
+    console.error("Error get keranjang:", err);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil data keranjang!"
+    });
+  }
+});
+//update
+app.put("/keranjang/tambah/:id", async (req, res) => {
+  try {
+    const item = await Cart.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item keranjang tidak ditemukan!"
+      });
+    }
+
+    item.jumlah += 1;
+    await item.save();
+
+    res.json({
+      success: true,
+      message: "Jumlah berhasil ditambah!"
+    });
+
+  } catch (err) {
+    console.error("Error update tambah:", err);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server"
+    });
+  }
+});
+
+app.put("/keranjang/kurang/:id", async (req, res) => {
+  try {
+    const item = await Cart.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item keranjang tidak ditemukan!"
+      });
+    }
+
+    if (item.jumlah <= 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Jumlah minimal 1"
+      });
+    }
+
+    item.jumlah -= 1;
+    await item.save();
+
+    res.json({
+      success: true,
+      message: "Jumlah berhasil dikurangi!"
+    });
+
+  } catch (err) {
+    console.error("Error update kurang:", err);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server"
+    });
+  }
+});
+
+//delete
+app.delete("/keranjang/:id", async (req, res) => {
+  try {
+    const item = await Cart.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "Item keranjang tidak ditemukan!"
+      });
+    }
+
+    await item.deleteOne();
+
+    res.json({
+      success: true,
+      message: "Item berhasil dihapus dari keranjang!"
+    });
+
+  } catch (err) {
+    console.error("Error delete keranjang:", err);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server"
+    });
+  }
+});
+app.post("/pelanggan", async (req, res) => {
+  try {
+    const { nama, alamat, telp, kota, kodePos, negara } = req.body;
+
+    if (!nama || !alamat || !telp || !kota || !kodePos || !negara) {
+      return res.status(400).json({
+        success: false,
+        message: "Semua field pelanggan wajib diisi!"
+      });
+    }
+
+    const pelanggan = new Pelanggan({
+      nama,
+      alamat,
+      telp,
+      kota,
+      kodePos,
+      negara
+    });
+
+    await pelanggan.save();
+
+    res.json({
+      success: true,
+      message: "Data pelanggan berhasil disimpan!",
+      data: pelanggan
+    });
+
+  } catch (err) {
+    console.error("Error simpan pelanggan:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+app.post("/checkout", async (req, res) => {
+  try {
+    const { pelangganId, paymentMethod } = req.body;
+
+    if (!pelangganId || !paymentMethod) {
+      return res.status(400).json({
+        success: false,
+        message: "pelangganId dan paymentMethod wajib!"
+      });
+    }
+
+    // Validasi metode pembayaran
+    if (!["cash", "qris"].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: "Metode pembayaran tidak valid!"
+      });
+    }
+
+    // Ambil isi keranjang
+    const cartItems = await Cart.find().populate("productId");
+
+    if (cartItems.length === 0) {
+      return res.status(400).json({ success: false, message: "Keranjang kosong!" });
+    }
+
+    // Hitung subtotal
+    const subtotal = cartItems.reduce((total, item) => {
+      return total + item.productId.hargaBarang * item.jumlah;
+    }, 0);
+
+    // Buat transaksi
+    const transaksi = new Transaksi({
+      pelanggan: pelangganId,
+      paymentMethod,
+      subtotal,
+      items: cartItems.map((item) => ({
+        productId: item.productId._id,
+        jumlah: item.jumlah,
+        harga: item.productId.hargaBarang
+      }))
+    });
+
+    await transaksi.save();
+
+    // HAPUS KERANJANG
+    await Cart.deleteMany({});
+
+    res.json({
+      success: true,
+      message: "Transaksi berhasil dibuat!",
+      data: transaksi
+    });
+
+  } catch (err) {
+    console.error("Error checkout:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Ambil semua transaksi
+app.get("/checkout", async (req, res) => {
+  try {
+    // Jika ingin semua transaksi
+    const transaksiList = await Transaksi.find()
+      .populate("pelanggan") // populate data pelanggan
+      .populate("items.productId"); // populate data produk di item
+
+    res.status(200).json({
+      success: true,
+      message: "✅ Data transaksi berhasil diambil",
+      data: transaksiList
+    });
+
+  } catch (err) {
+    console.error("Error get transaksi:", err);
+    res.status(500).json({
+      success: false,
+      message: "❌ Gagal mengambil data transaksi",
+    });
+  }
+});
+
 
 
 

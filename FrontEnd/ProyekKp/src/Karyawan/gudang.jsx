@@ -1,25 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./gudang.css";
-
-const dataGudang = [
-  { id: 1, nama: "Koper Kabin Fiber 20 Inch", harga: 750000, stock: 15 },
-  { id: 2, nama: "Ransel Laptop Anti Air", harga: 120000, stock: 25 },
-  { id: 3, nama: "Travel Duffel Bag Large", harga: 480000, stock: 8 },
-  { id: 4, nama: "Koper Kargo 28 Inch", harga: 1250000, stock: 12 },
-  { id: 5, nama: "Tas Selempang Kulit Asli", harga: 650000, stock: 18 },
-  { id: 6, nama: "Backpack Hiking 40L", harga: 950000, stock: 22 },
-  { id: 7, nama: "Koper Anak Motif Kartun", harga: 500000, stock: 30 },
-  { id: 8, nama: "Tas Pinggang Sporty", harga: 100000, stock: 40 },
-];
 
 const Gudang = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [dataGudang, setDataGudang] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredData = dataGudang.filter((item) =>
-    item.nama.toLowerCase().includes(search.toLowerCase())
+  // 🔹 Ambil data dari backend saat component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/barangmasuk");
+        if (response.data.success) {
+          // Tambahkan default value untuk nama supaya aman
+          const dataWithDefaultNama = response.data.data.map((item) => ({
+            ...item,
+            nama: item.nama || "Barang Tanpa Nama",
+          }));
+          setDataGudang(dataWithDefaultNama);
+        } else {
+          console.error(response.data.message);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // 🔹 Filter data, pastikan item.nama ada
+  const filteredData = dataGudang.filter(
+    (item) => item.nama && item.nama.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (loading) return <p>Loading data...</p>;
 
   return (
     <div className="gudang-container">
@@ -53,21 +73,22 @@ const Gudang = () => {
 
         <div className="gudang-grid">
           {filteredData.map((item) => (
-            <div className="card-gudang" key={item.id}>
-              <div className="img-placeholder-gudang">Gambar</div>
-              <h4>{item.nama}</h4>
-              <p>Rp {item.harga.toLocaleString()}</p>
+            <div className="card-gudang" key={item._id || item.id}>
+              {/* <div className="img-placeholder-gudang">Gambar</div> */}
+              <h4>{item.idBarang}</h4>
+              <h4>{item.namaBarang}</h4>
+              {/* <p>Rp {item.harga?.toLocaleString() || "0"}</p> */}
 
               <div
                 className={`stock-circle ${
-                  item.stock <= 10
+                  item.jumlahBarang <= 10
                     ? "red"
-                    : item.stock <= 20
+                    : item.jumlahBarang <= 20
                     ? "yellow"
                     : "green"
                 }`}
               >
-                {item.stock}
+                {item.jumlahBarang ?? 0}
               </div>
             </div>
           ))}

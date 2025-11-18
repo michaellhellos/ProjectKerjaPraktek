@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./tambahbarang.css";
 
 const TambahBarang = () => {
+  const navigate = useNavigate(); // <--- TAMBAH INI
+
   const [formData, setFormData] = useState({
     idBarang: "",
     namaBarang: "",
@@ -12,6 +15,9 @@ const TambahBarang = () => {
 
   const [fotoFile, setFotoFile] = useState(null);
   const [preview, setPreview] = useState(null);
+
+  const [barcodeUrl, setBarcodeUrl] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,6 +56,10 @@ const TambahBarang = () => {
 
       if (res.data.success) {
         alert("✅ Barang berhasil ditambahkan!");
+
+        setBarcodeUrl("http://localhost:3000" + res.data.barcode);
+        setShowPopup(true);
+
         setFormData({
           idBarang: "",
           namaBarang: "",
@@ -119,7 +129,6 @@ const TambahBarang = () => {
             />
           </div>
 
-          {/* FIX ✅ hanya 1 input file + ada name + required */}
           <div className="upload-wrapper">
             <label htmlFor="fotoBarang" className="upload-btn">
               Pilih Foto Barang
@@ -142,7 +151,10 @@ const TambahBarang = () => {
           )}
 
           <div className="btn-group">
-            <button type="submit" className="btn-save">Simpan</button>
+            <button type="submit" className="btn-save">
+              Simpan
+            </button>
+
             <button
               type="button"
               className="btn-reset"
@@ -160,9 +172,41 @@ const TambahBarang = () => {
               Reset
             </button>
           </div>
-
         </form>
       </div>
+
+      {/* POPUP BARCODE */}
+      {showPopup && (
+        <div className="popup-overlay">
+          <div className="popup-box">
+            <h3>Barcode Berhasil Dibuat</h3>
+
+            {barcodeUrl && (
+              <img
+                src={barcodeUrl}
+                alt="Barcode"
+                className="barcode-image"
+              />
+            )}
+
+            <div className="popup-buttons">
+              <button className="btn-print" onClick={() => window.print()}>
+                Print Barcode
+              </button>
+
+              <button
+                className="btn-close"
+                onClick={() => {
+                  setShowPopup(false);
+                  navigate("/Sistem/daftarBarang"); // <--- REDIRECT DI SINI
+                }}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

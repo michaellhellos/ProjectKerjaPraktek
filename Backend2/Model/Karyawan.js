@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const KaryawanSchema = new mongoose.Schema({
   idKaryawan: {
     type: String,
-    unique: true, // pastikan tidak duplikat
+    unique: true,
   },
   namaLengkap: String,
   tempatLahir: String,
@@ -13,32 +13,40 @@ const KaryawanSchema = new mongoose.Schema({
   alamat: String,
   noTelepon: String,
   agama: String,
-  foto: String, // path foto
-  ktp: String,  // path KTP
+
+  // 🔥 Tambahkan ini
+  Email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  Password: {
+    type: String,
+    required: true,
+  },
+
+  foto: String,
+  ktp: String,
+
   status: {
     type: String,
     enum: ["aktif", "nonaktif", "cuti"],
     default: "aktif",
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+
+  createdAt: { type: Date, default: Date.now },
 });
 
-// ✅ Generate ID otomatis: K001, K002, dst
+// Auto generate ID K001, K002, dst
 KaryawanSchema.pre("save", async function (next) {
   if (this.isNew) {
     const Karyawan = mongoose.model("Karyawan", KaryawanSchema);
-
-    // Ambil data terakhir berdasarkan idKaryawan (urut descending)
     const lastKaryawan = await Karyawan.findOne().sort({ createdAt: -1 });
 
     let newId = "K001";
     if (lastKaryawan && lastKaryawan.idKaryawan) {
-      const lastNumber = parseInt(lastKaryawan.idKaryawan.substring(1)); // ambil angka dari K001
-      const nextNumber = lastNumber + 1;
-      newId = "K" + nextNumber.toString().padStart(3, "0"); // hasil: K002
+      const lastNumber = parseInt(lastKaryawan.idKaryawan.substring(1));
+      newId = "K" + (lastNumber + 1).toString().padStart(3, "0");
     }
 
     this.idKaryawan = newId;

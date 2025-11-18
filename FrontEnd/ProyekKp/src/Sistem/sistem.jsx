@@ -1,44 +1,73 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./sistem.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Sistem = () => {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const navigate = useNavigate();
 
+  // 🔹 STATE UNTUK TOTAL PENJUALAN DAN TOTAL BARANG KELUAR
+  const [totalPenjualan, setTotalPenjualan] = useState(0);
+  const [totalBarangKeluar, setTotalBarangKeluar] = useState(0);
+
+  useEffect(() => {
+    const fetchTransaksi = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/checkout");
+        if (res.data.success && res.data.data) {
+          const transaksiList = res.data.data;
+
+          // 🔹 Hitung total penjualan
+          const total = transaksiList.reduce(
+            (acc, transaksi) => acc + transaksi.subtotal,
+            0
+          );
+          setTotalPenjualan(total);
+
+          // 🔹 Hitung total barang keluar
+          const totalBarang = transaksiList.reduce(
+            (acc, transaksi) =>
+              acc +
+              (transaksi.items
+                ? transaksi.items.reduce((sum, item) => sum + item.jumlah, 0)
+                : 0),
+            0
+          );
+          setTotalBarangKeluar(totalBarang);
+        }
+      } catch (err) {
+        console.error("Gagal ambil transaksi:", err);
+      }
+    };
+
+    fetchTransaksi();
+  }, []);
+
   const handleMenuClick = (key) => {
     setActiveMenu(key);
-    if (key === "karyawan") {
-      navigate("/Sistem/managekariawan"); 
-    }else if (key === "stock") {
-      navigate("/Sistem/stockgudang"); 
-    }else if (key === "barang") {
-      navigate("/Sistem/daftarBarang"); 
-    }else if (key === "retur") {
-      navigate("/Sistem/retur"); 
-    }else if (key === "dashboard") {
-      navigate("/Sistem/sistem"); 
-    }else if (key === "EditProfile") {
-      navigate("/Sistem/editprofile"); 
-    }
+    if (key === "karyawan") navigate("/Sistem/managekariawan");
+    else if (key === "stock") navigate("/Sistem/stockgudang");
+    else if (key === "barang") navigate("/Sistem/daftarBarang");
+    else if (key === "retur") navigate("/Sistem/retur");
+    else if (key === "dashboard") navigate("/Sistem/sistem");
+    else if (key === "EditProfile") navigate("/Sistem/editprofile");
   };
 
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className="sidebar">
-       <div className="profile-section" onClick={() => handleMenuClick("EditProfile")}
->
-  <img
-    src="/images/profile.png"
-    alt="Profile"
-    className="profile-image"
-  />
-  <div>
-    <h2 className="sidebar-title">Admin</h2>
-    <p className="sidebar-role">Warehouse Manager</p>
-  </div>
-</div>
+        <div
+          className="profile-section"
+          onClick={() => handleMenuClick("EditProfile")}
+        >
+          <img src="/images/profile.png" alt="Profile" className="profile-image" />
+          <div>
+            <h2 className="sidebar-title">Admin</h2>
+            <p className="sidebar-role">Warehouse Manager</p>
+          </div>
+        </div>
 
         <ul className="sidebar-menu">
           <li
@@ -82,11 +111,11 @@ const Sistem = () => {
         <div className="top-cards">
           <div className="card">
             <p>Penjualan Total</p>
-            <h2>Rp 12.5M</h2>
+            <h2>Rp {totalPenjualan.toLocaleString()}</h2>
           </div>
           <div className="card">
             <p>Total Barang Keluar</p>
-            <h2>3,450</h2>
+            <h2>{totalBarangKeluar.toLocaleString()}</h2>
           </div>
           <div className="card">
             <p>Total Barang</p>
