@@ -262,6 +262,50 @@ app.post(
   }
 );
 
+//update email dan password karyawan
+app.put("/updateAuthKaryawan/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, password } = req.body;
+
+    // Cari karyawan berdasarkan ID
+    const karyawan = await Karyawan.findById(id);
+    if (!karyawan) {
+      return res.status(404).json({
+        success: false,
+        message: "Karyawan tidak ditemukan!",
+      });
+    }
+
+    // Cek email baru tidak duplikat (kecuali email milik sendiri)
+    if (email && email !== karyawan.Email) {
+      const cekEmail = await Karyawan.findOne({ Email: email });
+      if (cekEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Email sudah digunakan!",
+        });
+      }
+      karyawan.Email = email;
+    }
+
+    // Update password jika diberikan
+    if (password) {
+      karyawan.Password = password;
+    }
+
+    await karyawan.save();
+
+    res.json({
+      success: true,
+      message: "Email dan password berhasil diperbarui!",
+    });
+
+  } catch (err) {
+    console.error("❌ Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 app.get("/getKaryawan", async (req, res) => {
   try {

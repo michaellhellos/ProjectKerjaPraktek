@@ -109,10 +109,10 @@ const HomePage = () => {
           </li>
           <li onClick={() => navigate("/Karyawan/keranjang")}>Keranjang</li>
           <li onClick={() => navigate("/Karyawan/gudang")}>
-            Catat Stock Gudang
+            Stock Gudang
           </li>
         </ul>
-        <button className="logout">Keluar</button>
+        <button className="logout" onClick={() => navigate("/")}>Keluar</button>
       </aside>
 
       {/* MAIN */}

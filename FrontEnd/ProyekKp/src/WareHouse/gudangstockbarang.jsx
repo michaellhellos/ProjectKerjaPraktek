@@ -40,7 +40,7 @@ const GudangStockBarang = () => {
           <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>
 
-        <button className="logout-btn">🚪 Keluar</button>
+        <button className="logout-btn" href="/">🚪 Keluar</button>
       </aside>
 
       {/* Main Content */}

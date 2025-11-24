@@ -16,15 +16,19 @@ import {
 } from "recharts";
 import "./warehouse.css";
 
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA66CC", "#FF6666"];
+
 const Warehouse = () => {
   const navigate = useNavigate();
-  const [activeMenu, setActiveMenu] = useState("dashboard");
-
   const [barangMasuk, setBarangMasuk] = useState(0);
   const [barangKeluar, setBarangKeluar] = useState(0);
   const [totalBarang, setTotalBarang] = useState(0);
-  const [chartData, setChartData] = useState([]);
-  const [pieData, setPieData] = useState([]);
+
+  const [chartMasuk, setChartMasuk] = useState([]);
+  const [chartKeluar, setChartKeluar] = useState([]);
+
+  const [pieMasuk, setPieMasuk] = useState([]);
+  const [tipeTotal, setTipeTotal] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -36,58 +40,69 @@ const Warehouse = () => {
       const keluarRes = await axios.get("http://localhost:3000/barangkeluar");
       const totalRes = await axios.get("http://localhost:3000/totalbarang");
 
-      const masukData = masukRes.data.data;
-      const keluarData = keluarRes.data.data;
-      setTotalBarang(totalRes.data.totalBarang);
+      const masukData = masukRes.data.data || [];
+      const keluarData = keluarRes.data.data || [];
 
-      // Hitung total
-      const totalMasuk = masukData.reduce((sum, item) => sum + (item.jumlahBarang || 0), 0);
-      const totalKeluar = keluarData.reduce((sum, item) => sum + (item.jumlahKeluar || 0), 0);
+      setTotalBarang(totalRes.data.totalBarang || 0);
+
+      // TOTAL MASUK
+      const totalMasuk = masukData.reduce(
+        (sum, i) => sum + (i.jumlahBarang || i.jumlahMasuk || 0),
+        0
+      );
       setBarangMasuk(totalMasuk);
+
+      // TOTAL KELUAR
+      const totalKeluar = keluarData.reduce(
+        (sum, i) => sum + (i.jumlahKeluar || i.jumlah || 0),
+        0
+      );
       setBarangKeluar(totalKeluar);
 
-      // 🔹 Data chart per bulan
-      const perBulan = {};
-      masukData.forEach((item) => {
-        const bulan = new Date(item.tanggalMasuk).toLocaleString("id-ID", { month: "short" });
-        perBulan[bulan] = (perBulan[bulan] || 0) + item.jumlahBarang;
+      // PIE MASUK
+      const masukTipe = {};
+      masukData.forEach((i) => {
+        const tipe = i.tipeBarang || i.namaBarang || "Lainnya";
+        const jumlah = i.jumlahBarang || i.jumlahMasuk || 0;
+        masukTipe[tipe] = (masukTipe[tipe] || 0) + jumlah;
       });
-      const barData = Object.entries(perBulan).map(([bulan, jumlah]) => ({
-        bulan,
-        jumlah,
-      }));
-      setChartData(barData);
+      setPieMasuk(Object.entries(masukTipe).map(([name, value]) => ({ name, value })));
 
-      // 🔸 Data pie (tipe barang)
-      const tipeCount = {};
-      masukData.forEach((item) => {
-        const tipe = item.tipeBarang || "Lainnya";
-        tipeCount[tipe] = (tipeCount[tipe] || 0) + item.jumlahBarang;
+      // BAR MASUK PER BULAN
+      const masukPerBulan = {};
+      masukData.forEach((i) => {
+        if (!i.tanggalMasuk) return;
+        const bulan = new Date(i.tanggalMasuk).toLocaleString("id-ID", { month: "short" });
+        masukPerBulan[bulan] = (masukPerBulan[bulan] || 0) + (i.jumlahBarang || 0);
       });
-      const pieChartData = Object.entries(tipeCount).map(([tipe, value]) => ({
-        name: tipe,
-        value,
-      }));
-      setPieData(pieChartData);
-    } catch (error) {
-      console.error("Gagal ambil data:", error);
+      setChartMasuk(Object.entries(masukPerBulan).map(([bulan, jumlah]) => ({ bulan, jumlah })));
+
+      // BAR KELUAR PER BULAN
+      const keluarPerBulan = {};
+      keluarData.forEach((i) => {
+        if (!i.tanggalKeluar) return;
+        const bulan = new Date(i.tanggalKeluar).toLocaleString("id-ID", { month: "short" });
+        keluarPerBulan[bulan] = (keluarPerBulan[bulan] || 0) + (i.jumlahKeluar || 0);
+      });
+      setChartKeluar(Object.entries(keluarPerBulan).map(([bulan, jumlah]) => ({ bulan, jumlah })));
+
+      // TOTAL TIPE BARANG
+      const tipeCount = {};
+      masukData.forEach((i) => {
+        const tipe = i.tipeBarang || i.namaBarang || "Lainnya";
+        const jumlah = i.jumlahBarang || i.jumlahMasuk || 0;
+        tipeCount[tipe] = (tipeCount[tipe] || 0) + jumlah;
+      });
+      setTipeTotal(Object.entries(tipeCount).map(([name, value]) => ({ name, value })));
+
+    } catch (err) {
+      console.log("Error:", err);
     }
   };
 
-  const handleMenuClick = (key) => {
-    setActiveMenu(key);
-    if (key === "dashboard") navigate("/WareHouse/warehouse");
-    else if (key === "stock") navigate("/WareHouse/gudangstockbarang");
-    else if (key === "tambahMasuk") navigate("/WareHouse/tambahbaranggudang");
-    else if (key === "barangKeluar") navigate("/WareHouse/tambahbarangkeluar");
-    else if (key === "retur") navigate("/WareHouse/returgudang");
-  };
-
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA66CC", "#FF6666"];
-
   return (
     <div className="warehouse-container">
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="profile">
           <div className="profile-icon">A</div>
@@ -95,79 +110,89 @@ const Warehouse = () => {
         </div>
 
         <nav className="nav-menu">
-          <a onClick={() => handleMenuClick("dashboard")} className={activeMenu === "dashboard" ? "active" : ""}>
-            📊 Dashboard
-          </a>
-          <a onClick={() => handleMenuClick("stock")} className={activeMenu === "stock" ? "active" : ""}>
-            📦 Stock Gudang
-          </a>
-          <a onClick={() => handleMenuClick("tambahMasuk")} className={activeMenu === "tambahMasuk" ? "active" : ""}>
-            ➕ Tambah Barang Masuk
-          </a>
-          <a onClick={() => handleMenuClick("barangKeluar")} className={activeMenu === "barangKeluar" ? "active" : ""}>
-            📤 Barang Keluar
-          </a>
-          <a onClick={() => handleMenuClick("retur")} className={activeMenu === "retur" ? "active" : ""}>
-            ↩️ Return Barang
-          </a>
+          <a className="active">📊 Dashboard</a>
+          <a href="/WareHouse/gudangstockbarang">📦 Stock Gudang</a>
+          <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
+          <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
+          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>
 
-        <button className="logout-btn">🚪 Keluar</button>
+        <div className="sidebar-footer">
+          <button className="logout-btn">Keluar</button>
+        </div>
       </aside>
 
-      {/* Dashboard */}
+      {/* MAIN PAGE */}
       <main className="dashboard">
-        <header>
+        <header className="dashboard-header">
           <h1>Dashboard Gudang</h1>
-          <p>Welcome back, Acong! Berikut ringkasan gudangmu.</p>
+          <p>Welcome back! Berikut ringkasan gudangmu.</p>
         </header>
 
-        {/* Cards */}
+        {/* CARDS */}
         <section className="cards">
-          <div className="card clickable" onClick={() => navigate("/WareHouse/gudangstockbarang")}>
+          <div className="card clickable">
             <h4>Total Barang Masuk</h4>
             <h2>{barangMasuk}</h2>
           </div>
-          <div className="card clickable" onClick={() => navigate("/WareHouse/tambahbarangkeluar")}>
+
+          <div className="card clickable">
             <h4>Total Barang Keluar</h4>
             <h2>{barangKeluar}</h2>
           </div>
+
           <div className="card">
             <h4>Total Barang</h4>
             <h2>{totalBarang}</h2>
+
+            <div className="tipe-list">
+              {tipeTotal.map((t, i) => (
+                <div key={i} className="tipe-row">
+                  <span>• {t.name}</span>
+                  <span>{t.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Chart Section */}
-        <section className="charts">
-          <div className="chart-card">
-            <h3>📈 Total Barang Masuk per Bulan</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="bulan" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="jumlah" fill="#0088FE" radius={[10, 10, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        {/* BAR CHART MASUK */}
+        <section className="chart-card">
+          <h3>📈 Total Barang Masuk per Bulan</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartMasuk}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="bulan" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="jumlah" fill="#0088FE" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </section>
 
-          <div className="chart-card">
-            <h3>🍩 Persentase Tipe Barang</h3>
+        {/* BAR CHART KELUAR */}
+        <section className="chart-card">
+          <h3>📤 Total Barang Keluar per Bulan</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartKeluar}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="bulan" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="jumlah" fill="#FF8042" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </section>
+
+        {/* PIE CHART MASUK (ONLY ONE LEFT) */}
+        <section className="charts">
+          <div className="chart-card single">
+            <h3>📥 Persentase Barang Masuk</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  label
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Pie data={pieMasuk} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
+                  {pieMasuk.map((e, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />

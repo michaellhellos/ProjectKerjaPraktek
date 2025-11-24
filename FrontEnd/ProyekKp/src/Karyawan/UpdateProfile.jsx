@@ -1,77 +1,110 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./updateProfile.css"; // Buat styling sendiri
+import "./updateAuthKaryawan.css";
 
-const UpdateProfile = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const UpdateAuthKaryawan = () => {
+  const [id, setId] = useState("");
+
+  // Input lama
+  const [oldEmail, setOldEmail] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+
+  // Input baru
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
   const [message, setMessage] = useState("");
 
-  // 🔹 Optional: ambil data user saat load halaman
+  // 🔹 Ambil data karyawan saat halaman dibuka
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/user/profile"); // route ambil profile
-        if (response.data.success) {
-          setEmail(response.data.user.email);
+        const res = await axios.get("http://localhost:3000/karyawan/profile");
+
+        if (res.data.success) {
+          setId(res.data.karyawan._id);
+          setOldEmail(res.data.karyawan.Email); // otomatis isi email lama
         }
       } catch (err) {
-        console.error("Error fetching profile:", err);
+        console.log("Gagal fetch:", err);
       }
     };
 
     fetchProfile();
   }, []);
 
+  // 🔹 Submit update data auth
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const response = await axios.put("http://localhost:3000/user/profile", {
-        email,
-        password,
-      });
+    // Pastikan password lama tidak kosong
+    if (!oldPassword) {
+      setMessage("❌ Password lama wajib diisi!");
+      return;
+    }
 
-      if (response.data.success) {
-        setMessage("✅ Profile berhasil diperbarui!");
+    try {
+      const res = await axios.put(
+        `http://localhost:3000/updateAuthKaryawan/${id}`,
+        {
+          email: newEmail ? newEmail : oldEmail,
+          password: newPassword ? newPassword : oldPassword,
+        }
+      );
+
+      if (res.data.success) {
+        setMessage("✅ Email & Password berhasil diperbarui!");
       } else {
-        setMessage("❌ Gagal memperbarui profile");
+        setMessage("❌ Gagal memperbarui data");
       }
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Terjadi kesalahan saat update profile");
+    } catch (error) {
+      console.log(error);
+      setMessage("❌ Terjadi kesalahan server");
     }
   };
 
   return (
-    <div className="update-profile-container">
-      <h2>Update Profile</h2>
+    <div className="auth-update-container">
+      <h2 className="auth-title">Update Akun Karyawan</h2>
 
-      {message && <p className="message">{message}</p>}
+      {message && <p className="auth-message">{message}</p>}
 
-      <form className="update-profile-form" onSubmit={handleSubmit}>
-        <label>Email:</label>
-        <input
-          type="email"
-          value={email}
-          placeholder="Masukkan email baru"
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+      <form className="auth-update-form" onSubmit={handleSubmit}>
+        
+        <label>Email Lama:</label>
+        <input type="email" value={oldEmail} disabled />
 
-        <label>Password:</label>
+        <label>Password Lama:</label>
         <input
           type="password"
-          value={password}
-          placeholder="Masukkan password baru"
-          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Masukkan password lama"
+          value={oldPassword}
+          onChange={(e) => setOldPassword(e.target.value)}
           required
         />
 
-        <button type="submit">Update Profile</button>
+        <label>Email Baru:</label>
+        <input
+          type="email"
+          placeholder="Masukkan email baru"
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+        />
+
+        <label>Password Baru:</label>
+        <input
+          type="password"
+          placeholder="Masukkan password baru"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+
+        <button type="submit" className="auth-btn">
+          Simpan Perubahan
+        </button>
       </form>
     </div>
   );
 };
 
-export default UpdateProfile;
+export default UpdateAuthKaryawan;

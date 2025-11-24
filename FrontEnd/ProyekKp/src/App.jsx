@@ -182,7 +182,7 @@ function App() {
         path="/Karyawan/updateprofile"
         element={
           <ProtectedRoute allow={["karyawan"]}>
-            <Gudang />
+            <UpdateProfile />
           </ProtectedRoute>
         }
       />

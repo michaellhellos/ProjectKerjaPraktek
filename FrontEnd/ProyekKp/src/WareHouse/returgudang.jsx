@@ -46,6 +46,7 @@ function ReturGudang() {
           <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
           <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
           <a href="/WareHouse/returgudang" className="active">↩️ Return Barang</a>
+          <button className="logout-btn"href="/">🚪 Keluar</button>
         </nav>
 
       <div className="retur-card">

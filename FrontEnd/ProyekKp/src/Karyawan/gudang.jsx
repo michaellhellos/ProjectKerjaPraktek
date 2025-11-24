@@ -51,12 +51,12 @@ const Gudang = () => {
         </div>
 
         <ul>
-          <li onClick={() => navigate("/")}>List Barang</li>
-          <li onClick={() => navigate("/keranjang")}>Keranjang</li>
-          <li className="active">Cek Stok Gudang</li>
+          <li onClick={() => navigate("/Karyawan/homepage")}>List Barang</li>
+          <li onClick={() => navigate("/Karyawan/keranjang")}>Keranjang</li>
+          <li className="active">Stok Gudang</li>
         </ul>
 
-        <button className="logout">Keluar</button>
+        <button className="logout"onClick={() => navigate("/")}>Keluar</button>
       </aside>
 
       {/* MAIN */}
