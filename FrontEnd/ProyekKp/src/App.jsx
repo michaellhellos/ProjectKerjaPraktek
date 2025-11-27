@@ -186,6 +186,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+   
     </Routes>
     
   );

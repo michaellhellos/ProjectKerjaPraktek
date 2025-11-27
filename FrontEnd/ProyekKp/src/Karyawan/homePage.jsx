@@ -11,9 +11,13 @@ const HomePage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [jumlah, setJumlah] = useState(1);
 
-  // 🔹 STATE UNTUK USER
+  // 🔹 STATE USER
   const [user, setUser] = useState({ nama: "Karyawan" });
   const [loadingUser, setLoadingUser] = useState(true);
+
+  // 🔹 STATE SCAN BARCODE
+  const [scanMode, setScanMode] = useState(false);
+  const [barcodeInput, setBarcodeInput] = useState("");
 
   // 🔥 AMBIL DATA PRODUK
   useEffect(() => {
@@ -27,7 +31,6 @@ const HomePage = () => {
     };
     fetchProduk();
 
-    // 🔹 AMBIL DATA USER YANG LOGIN
     const fetchUser = async () => {
       try {
         const res = await axios.get("http://localhost:3000/getKaryawan");
@@ -35,7 +38,7 @@ const HomePage = () => {
           setUser(res.data.user);
         }
       } catch (err) {
-        console.error("Gagal ambil data user:", err);
+        console.error("Gagal ambil user:", err);
       } finally {
         setLoadingUser(false);
       }
@@ -43,7 +46,7 @@ const HomePage = () => {
     fetchUser();
   }, []);
 
-  // 🔹 FILTER PENCARIAN
+  // 🔹 FILTER PRODUK
   const filteredProduk = dataProduk.filter((item) =>
     (item.namaBarang || "").toLowerCase().includes(search.toLowerCase())
   );
@@ -75,7 +78,6 @@ const HomePage = () => {
 
       alert("Berhasil ditambahkan ke keranjang!");
 
-      // refresh stok
       const res = await axios.get("http://localhost:3000/barang");
       setDataProduk(res.data.data || []);
 
@@ -83,6 +85,39 @@ const HomePage = () => {
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Gagal tambah ke keranjang");
+    }
+  };
+
+  // 🔹 SCAN BARCODE MULAI
+  const startScan = () => {
+    setScanMode(true);
+    setBarcodeInput("");
+
+    setTimeout(() => {
+      const input = document.getElementById("barcodeInputField");
+      if (input) input.focus();
+    }, 200);
+  };
+
+  // 🔹 JIKA BARCODE SUDAH TERBACA (ENTER)
+  const handleBarcodeEnter = (e) => {
+    if (e.key === "Enter") {
+      const kode = barcodeInput.trim();
+
+      const produk = dataProduk.find(
+        (p) => p.idBarang?.toString() === kode.toString()
+      );
+
+      if (!produk) {
+        alert("Produk tidak ditemukan!");
+        setScanMode(false);
+        return;
+      }
+
+      // buka modal otomatis
+      openModal(produk);
+
+      setScanMode(false);
     }
   };
 
@@ -97,26 +132,57 @@ const HomePage = () => {
         >
           <h3>Toko</h3>
           <p>{loadingUser ? "Loading..." : user?.namaLengkap || "Karyawan"}</p>
-
         </div>
 
         <ul>
-          <li
-            className="active"
-            onClick={() => navigate("/Karyawan/homepage")}
-          >
+          <li className="active" onClick={() => navigate("/Karyawan/homepage")}>
             List Barang
           </li>
           <li onClick={() => navigate("/Karyawan/keranjang")}>Keranjang</li>
-          <li onClick={() => navigate("/Karyawan/gudang")}>
-            Stock Gudang
-          </li>
+          <li onClick={() => navigate("/Karyawan/gudang")}>Stock Gudang</li>
         </ul>
-        <button className="logout" onClick={() => navigate("/")}>Keluar</button>
+
+        <button className="logout" onClick={() => navigate("/")}>
+          Keluar
+        </button>
       </aside>
 
       {/* MAIN */}
       <main className="main">
+        {/* 🔵 BUTTON SCAN BARANG */}
+        <button
+          className="scan-btn"
+          onClick={startScan}
+          style={{
+            padding: "10px 20px",
+            background: "#007bff",
+            color: "white",
+            borderRadius: "10px",
+            cursor: "pointer",
+            marginBottom: "10px",
+          }}
+        >
+          + Scan Barang
+        </button>
+
+        {/* 🔵 INPUT HIDDEN UNTUK SCANNER */}
+        {scanMode && (
+          <input
+            id="barcodeInputField"
+            type="text"
+            autoFocus
+            value={barcodeInput}
+            onChange={(e) => setBarcodeInput(e.target.value)}
+            onKeyDown={handleBarcodeEnter}
+            style={{
+              position: "absolute",
+              opacity: 0,
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
+        {/* SEARCH */}
         <input
           type="text"
           className="search-input"
@@ -125,10 +191,10 @@ const HomePage = () => {
           onChange={(e) => setSearch(e.target.value)}
         />
 
+        {/* GRID PRODUK */}
         <div className="product-grid">
           {filteredProduk.map((item) => (
             <div className="card" key={item._id}>
-             
               <h4>{item.idBarang}</h4>
               <h4>{item.namaBarang}</h4>
               <p>Harga: Rp {(item.hargaBarang || 0).toLocaleString()}</p>
@@ -163,7 +229,8 @@ const HomePage = () => {
               Total Harga:
               <br />
               <strong>
-                Rp {((selectedProduct.hargaBarang || 0) * jumlah).toLocaleString()}
+                Rp{" "}
+                {((selectedProduct.hargaBarang || 0) * jumlah).toLocaleString()}
               </strong>
             </p>
 

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const TransaksiSchema = new mongoose.Schema(
   {
     pelanggan: {
@@ -31,3 +32,4 @@ const TransaksiSchema = new mongoose.Schema(
   },
   { timestamps: true } // 🔥 WAJIB DIBERI
 );
+module.exports = mongoose.model("Transaksi", TransaksiSchema);
