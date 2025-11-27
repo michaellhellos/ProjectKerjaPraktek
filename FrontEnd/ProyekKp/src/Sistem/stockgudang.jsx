@@ -1,29 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaEdit, FaTrash } from "react-icons/fa";
+import axios from "axios";
 import "./stockgudang.css";
 
 const StockGudang = () => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("stock");
+
+  // State utk backend
+  const [dataBarang, setDataBarang] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Filter dan Search
   const [filter, setFilter] = useState("Semua");
   const [search, setSearch] = useState("");
 
-  const dataBarang = [
-    { id: "SKU001", nama: "Koper Kabin Hard Case", jumlah: 25, masuk: "2023-01-15", keluar: "2023-03-20", tipe: "Hard Case" },
-    { id: "SKU002", nama: "Tas Ransel Laptop", jumlah: 8, masuk: "2023-02-10", keluar: "-", tipe: "Backpack" },
-    { id: "SKU003", nama: "Koper Medium Soft Case", jumlah: 0, masuk: "2023-01-20", keluar: "2023-04-01", tipe: "Soft Case" },
-    { id: "SKU004", nama: "Duffel Bag Olahraga", jumlah: 15, masuk: "2023-03-05", keluar: "-", tipe: "Duffel Bag" },
-    { id: "SKU005", nama: "Koper Besar Hard Case", jumlah: 40, masuk: "2023-02-25", keluar: "-", tipe: "Hard Case" },
-    { id: "SKU006", nama: "Tas Selempang Travel", jumlah: 3, masuk: "2023-04-10", keluar: "2023-04-12", tipe: "Lainnya" },
-  ];
+  // ======== FETCH DATA BACKEND ========
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/barangmasuk");
 
+        if (res.data.success) {
+          setDataBarang(res.data.data);
+        } else {
+          setError("Gagal mengambil data dari server");
+        }
+      } catch (err) {
+        setError("Terjadi kesalahan: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // ======== FILTER & SEARCH ========
   const filteredBarang = dataBarang.filter(
     (item) =>
       (filter === "Semua" || item.tipe === filter) &&
-      item.nama.toLowerCase().includes(search.toLowerCase())
+      item.namaBarang.toLowerCase().includes(search.toLowerCase())
   );
 
+  // ======== MENU NAVIGATION ========
   const handleMenuClick = (key) => {
     setActiveMenu(key);
     if (key === "karyawan") navigate("/Sistem/managekariawan");
@@ -33,6 +55,17 @@ const StockGudang = () => {
     else if (key === "dashboard") navigate("/Sistem/sistem");
   };
 
+  // ======== LOADING UI ========
+  if (loading) {
+    return <h2 style={{ textAlign: "center", marginTop: "50px" }}>Loading data...</h2>;
+  }
+
+  // ======== ERROR UI ========
+  if (error) {
+    return <h2 style={{ textAlign: "center", color: "red", marginTop: "50px" }}>{error}</h2>;
+  }
+
+  // ========== MAIN UI ==========
   return (
     <div className="stock-container">
 
@@ -60,9 +93,9 @@ const StockGudang = () => {
 
             <div className="search-box">
               <FaSearch />
-              <input 
-                type="text" 
-                placeholder="Cari barang..." 
+              <input
+                type="text"
+                placeholder="Cari barang..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -88,25 +121,18 @@ const StockGudang = () => {
                 <th>Nama</th>
                 <th>Jumlah</th>
                 <th>Tgl Masuk</th>
-                <th>Tgl Keluar</th>
                 <th>Tipe</th>
-                <th>Aksi</th>
               </tr>
             </thead>
 
             <tbody>
               {filteredBarang.map((item, index) => (
                 <tr key={index}>
-                  <td>{item.id}</td>
-                  <td>{item.nama}</td>
+                  <td>{item.idBarang}</td>
+                  <td>{item.namaBarang}</td>
                   <td className={item.jumlah <= 3 ? "warning" : ""}>{item.jumlah}</td>
-                  <td>{item.masuk}</td>
-                  <td>{item.keluar}</td>
-                  <td>{item.tipe}</td>
-                  <td className="action-col">
-                    <button className="btn-edit"><FaEdit /></button>
-                    <button className="btn-delete"><FaTrash /></button>
-                  </td>
+                  <td>{item.tanggalMasuk}</td>
+                  <td>{item.tipeBarang}</td>
                 </tr>
               ))}
             </tbody>
