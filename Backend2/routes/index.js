@@ -309,15 +309,20 @@ app.put("/updateAuthKaryawan/:id", async (req, res) => {
 
 app.get("/getKaryawan", async (req, res) => {
   try {
-    const karyawan = await Karyawan.findOne({ Email: req.userEmail }); // contoh pakai session/email login
-    if (!karyawan) return res.json({ success: false });
+    const karyawan = await Karyawan.find();
 
-    res.json({ success: true, user: karyawan });
-  } catch (err) {
-    console.error(err);
-    res.json({ success: false });
+    res.json({
+      success: true,
+      data: karyawan, // <-- HARUS "data"
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: "Gagal mengambil data"
+    });
   }
 });
+
 
 app.put("/updateStatus/:id", async (req, res) => {
   try {

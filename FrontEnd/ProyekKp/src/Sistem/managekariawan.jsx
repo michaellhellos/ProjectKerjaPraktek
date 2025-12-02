@@ -7,16 +7,18 @@ function ManageKariawan() {
   const [activeMenu, setActiveMenu] = useState("karyawan");
   const [dataKaryawan, setDataKaryawan] = useState([]);
 
-  // === GET DATA KARYAWAN DARI BACKEND ===
+  // === GET DATA KARYAWAN ===
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch("http://localhost:3000/getKaryawan");
         const data = await res.json();
-        if (data.success) {
+
+        if (data.success && Array.isArray(data.data)) {
           setDataKaryawan(data.data);
         } else {
-          alert("Gagal memuat data karyawan!");
+          console.error("Data dari backend bukan array:", data);
+          setDataKaryawan([]); // Cegah error
         }
       } catch (err) {
         console.error("❌ Error:", err);
@@ -42,7 +44,7 @@ function ManageKariawan() {
     navigate("/Sistem/tambahkaryawan");
   };
 
-  // === UPDATE STATUS (PECAT/REKRUT) ===
+  // === UPDATE STATUS ===
   const handleUpdateStatus = async (id, statusBaru) => {
     try {
       const res = await fetch(`http://localhost:3000/updateStatus/${id}`, {
@@ -130,7 +132,7 @@ function ManageKariawan() {
           </thead>
 
           <tbody>
-            {dataKaryawan.length > 0 ? (
+            {Array.isArray(dataKaryawan) && dataKaryawan.length > 0 ? (
               dataKaryawan.map((karyawan) => (
                 <tr key={karyawan._id}>
                   <td>{karyawan.idKaryawan}</td>
@@ -148,14 +150,18 @@ function ManageKariawan() {
                     {karyawan.status === "aktif" ? (
                       <button
                         className="btn-danger"
-                        onClick={() => handleUpdateStatus(karyawan._id, "nonaktif")}
+                        onClick={() =>
+                          handleUpdateStatus(karyawan._id, "nonaktif")
+                        }
                       >
                         Pecat
                       </button>
                     ) : (
                       <button
                         className="btn-success"
-                        onClick={() => handleUpdateStatus(karyawan._id, "aktif")}
+                        onClick={() =>
+                          handleUpdateStatus(karyawan._id, "aktif")
+                        }
                       >
                         Rekrut
                       </button>

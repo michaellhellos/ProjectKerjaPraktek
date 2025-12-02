@@ -9,6 +9,7 @@ const Sistem = () => {
 
   const [totalPenjualan, setTotalPenjualan] = useState(0);
   const [totalBarangKeluar, setTotalBarangKeluar] = useState(0);
+const [transaksiSemua, setTransaksiSemua] = useState([]);
 
   // DATA TRANSAKSI
   const [transaksi, setTransaksi] = useState([]);
@@ -47,39 +48,83 @@ useEffect(() => {
 
 
   // GET TRANSAKSI
-  useEffect(() => {
-    const fetchTransaksi = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/checkout");
-        if (res.data.success && res.data.data) {
-          const transaksiList = res.data.data;
-          setTransaksi(transaksiList);
+ useEffect(() => {
+  const fetchTransaksi = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/checkout");
 
-          // Hitung total penjualan
-          const total = transaksiList.reduce(
-            (acc, transaksi) => acc + transaksi.subtotal,
-            0
-          );
-          setTotalPenjualan(total);
+      if (res.data.success && res.data.data) {
+        const transaksiAll = res.data.data;
 
-          // Hitung total barang keluar dari transaksi
-          const totalBarang = transaksiList.reduce(
-            (acc, transaksi) =>
-              acc +
-              (transaksi.items
-                ? transaksi.items.reduce((sum, item) => sum + item.jumlah, 0)
-                : 0),
-            0
-          );
-          setTotalBarangKeluar(totalBarang);
-        }
-      } catch (err) {
-        console.error("Gagal ambil transaksi:", err);
+        // === FILTER TRANSAKSI HANYA HARI INI ===
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // set jam jadi 00:00
+
+        const transaksiHariIni = transaksiAll.filter((trx) => {
+          const tgl = new Date(trx.createdAt);
+          tgl.setHours(0, 0, 0, 0);
+          return tgl.getTime() === today.getTime();
+        });
+
+        // Simpan transaksi hari ini
+        setTransaksi(transaksiHariIni);
+
+        // === HITUNG TOTAL PENJUALAN HARI INI ===
+        const total = transaksiHariIni.reduce(
+          (acc, trx) => acc + (trx.subtotal || 0),
+          0
+        );
+        setTotalPenjualan(total);
+
+        // === HITUNG TOTAL BARANG KELUAR HARI INI ===
+        const totalBarang = transaksiHariIni.reduce(
+          (acc, trx) =>
+            acc +
+            (trx.items
+              ? trx.items.reduce((sum, item) => sum + item.jumlah, 0)
+              : 0),
+          0
+        );
+        setTotalBarangKeluar(totalBarang);
       }
-    };
+    } catch (err) {
+      console.error("Gagal ambil transaksi:", err);
+    }
+  };
 
-    fetchTransaksi();
-  }, []);
+  fetchTransaksi();
+}, []);
+useEffect(() => {
+  const fetchTransaksi = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/checkout");
+
+      if (res.data.success && res.data.data) {
+        const transaksiAll = res.data.data;
+
+        // simpan semua transaksi
+        setTransaksiSemua(transaksiAll);
+
+        // === FILTER TRANSAKSI HARI INI SAJA ===
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const trxToday = transaksiAll.filter((trx) => {
+          const tgl = new Date(trx.createdAt);
+          tgl.setHours(0, 0, 0, 0);
+          return tgl.getTime() === today.getTime();
+        });
+
+        setTransaksiHariIni(trxToday);
+      }
+    } catch (err) {
+      console.error("Gagal ambil transaksi:", err);
+    }
+  };
+
+  fetchTransaksi();
+}, []);
+
 
   // GET BARANG KELUAR
   useEffect(() => {
@@ -215,7 +260,7 @@ useEffect(() => {
 
           {/* CARD BARANG KELUAR → BUKA POPUP */}
           <div className="card" onClick={() => setShowPopupBarangKeluar(true)}>
-            <p>Total Barang Keluar Dari Gudang</p>
+            <p>Total Barang Keluar Dari Gudang Hari Ini</p>
             <h2>{totalBarangKeluar.toLocaleString()}</h2>
           </div>
 
@@ -228,39 +273,61 @@ useEffect(() => {
 
         {/* POPUP TRANSAKSI */}
         {showPopup && (
-          <div className="popup-overlay">
-            <div className="popup-content">
-              <h2>Penjualan Hari Ini</h2>
+  <div className="popup-overlay">
+    <div className="popup-content">
+      <h2>History Penjualan</h2>
 
-              <table className="popup-table">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>ID Transaksi</th>
-                    <th>Pelanggan</th>
-                    <th>Total</th>
-                    <th>Print Nota</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transaksiHariIni.map((t, index) => (
-                    <tr key={t._id}>
-                      <td>{index + 1}</td>
-                      <td>{t._id}</td>
-                      <td>{t.pelanggan?.nama || "-"}</td>
-                      <td>Rp {t.subtotal.toLocaleString()}</td>
-                      <td>
-                        <button className="print-btn" onClick={() => handlePrintNota(t)}>Print</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <table className="popup-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>ID Transaksi</th>
+            <th>Pelanggan</th>
+            <th>Total</th>
+            <th>Tanggal</th>
+            <th>Print Nota</th>
+          </tr>
+        </thead>
 
-              <button className="close-btn" onClick={() => setShowPopup(false)}>Tutup</button>
-            </div>
-          </div>
-        )}
+        <tbody>
+          {transaksiSemua.length > 0 ? (
+            transaksiSemua.map((t, index) => (
+              <tr key={t._id}>
+                <td>{index + 1}</td>
+                <td>{t._id}</td>
+                <td>{t.pelanggan?.nama || "-"}</td>
+                <td>Rp {t.subtotal.toLocaleString()}</td>
+
+                {/* TAMPILKAN TANGGAL */}
+                <td>{new Date(t.createdAt).toLocaleDateString("id-ID")}</td>
+
+                <td>
+                  <button
+                    className="print-btn"
+                    onClick={() => handlePrintNota(t)}
+                  >
+                    Print
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" style={{ textAlign: "center" }}>
+                Tidak ada transaksi
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      <button className="close-btn" onClick={() => setShowPopup(false)}>
+        Tutup
+      </button>
+    </div>
+  </div>
+)}
+
 
         {/* POPUP BARANG KELUAR */}
         {showPopupBarangKeluar && (
@@ -310,7 +377,7 @@ useEffect(() => {
           </div>
 
           <div className="chart-card">
-            <h3>Stock Tiap Barang</h3>
+            <h3>Stock Tiap Di Gudang Barang</h3>
             <div className="chart-placeholder">[ Grafik Pie ]</div>
           </div>
         </div>
