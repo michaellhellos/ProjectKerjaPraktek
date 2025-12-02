@@ -20,7 +20,8 @@ import Warehouse from "./WareHouse/warehouse";
 import GudangStockBarang from "./WareHouse/gudangstockbarang";
 import TambahBarangGudang from "./WareHouse/tambahbaranggudang";
 import TambahBarangKeluar from "./WareHouse/tambahbarangkeluar";
-import ReturGudang from "./WareHouse/returgudang";
+// import ReturGudang from "./WareHouse/returgudang";
+import EditProfiles from "./WareHouse/editprofile";
 
 // Karyawan
 import HomePage from "./Karyawan/homePage";
@@ -143,11 +144,19 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route
+      {/* <Route
         path="/WareHouse/returgudang"
         element={
           <ProtectedRoute allow={["kepala_gudang"]}>
             <ReturGudang />
+          </ProtectedRoute>
+        }
+      /> */}
+      <Route
+        path="/WareHouse/editprofile"
+        element={
+          <ProtectedRoute allow={["kepala_gudang"]}>
+            <EditProfiles />
           </ProtectedRoute>
         }
       />

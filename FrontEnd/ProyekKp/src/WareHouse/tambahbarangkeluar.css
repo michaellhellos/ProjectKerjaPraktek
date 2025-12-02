@@ -221,3 +221,9 @@ input, select {
   cursor: pointer;
   font-weight: 500;
 }
+.profile-image {
+  width: 130px;   /* kecil */
+  height: 10
+  0px;  /* kecil */
+  object-fit: cover;
+}

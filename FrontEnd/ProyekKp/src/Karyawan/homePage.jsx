@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./HomePage.css";
-
+import Logo from "../images/Logo.jpg";
 const HomePage = () => {
   const navigate = useNavigate();
 
@@ -130,8 +130,8 @@ const HomePage = () => {
           onClick={() => navigate("/Karyawan/updateprofile")}
           style={{ cursor: "pointer" }}
         >
-          <h3>Toko</h3>
-          <p>{loadingUser ? "Loading..." : user?.namaLengkap || "Karyawan"}</p>
+          <img src={Logo} alt="Profil" className="profile-image" />
+                    <p className="brand-name">SEMOGA JADI JAYA</p>
         </div>
 
         <ul>

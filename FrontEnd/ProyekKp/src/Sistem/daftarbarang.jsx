@@ -3,7 +3,7 @@ import { FaSearch, FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./daftarbarang.css";
-
+import Logo from "../images/Logo.jpg";
 const DaftarBarang = () => {
   const [search, setSearch] = useState("");
   const [activeMenu, setActiveMenu] = useState("barang");
@@ -59,8 +59,11 @@ const DaftarBarang = () => {
   return (
     <div className="barang-container">
       <aside className="sidebar">
-        <h2 className="sidebar-title">Admin</h2>
-        <p className="sidebar-role">Warehouse Manager</p>
+        <img src={Logo} alt="Profil" className="profile-image" />
+                  <div>
+                    <h2 className="sidebar-title">Admin</h2>
+                    <p className="sidebar-role">CV SEMOGA JADI JAYA</p>
+                  </div>
         <ul className="sidebar-menu">
           <li className={activeMenu === "dashboard" ? "active" : ""} onClick={() => handleMenuClick("dashboard")}>Dashboard</li>
           <li className={activeMenu === "karyawan" ? "active" : ""} onClick={() => handleMenuClick("karyawan")}>Manage Karyawan</li>
@@ -68,6 +71,15 @@ const DaftarBarang = () => {
           <li className={activeMenu === "barang" ? "active" : ""} onClick={() => handleMenuClick("barang")}>Daftar Barang</li>
           <li className={activeMenu === "retur" ? "active" : ""} onClick={() => handleMenuClick("retur")}>Daftar Retur</li>
         </ul>
+          <button
+    className="logout-btn"
+    onClick={() => {
+      localStorage.removeItem("token");
+      navigate("/");
+    }}
+  >
+    Logout
+  </button>
       </aside>
 
       <div className="main-area">

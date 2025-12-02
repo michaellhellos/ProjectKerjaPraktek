@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Logo from "../images/Logo.jpg";
 import {
   BarChart,
   Bar,
@@ -105,8 +106,14 @@ const Warehouse = () => {
       {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="profile">
-          <div className="profile-icon">A</div>
-          <h3>Acong</h3>
+          <img
+  src={Logo}
+  alt="Profil"
+  className="profile-image clickable-image"
+  onClick={() => navigate("/WareHouse/editprofile")}
+/>
+
+          <h3>Semoga Jadi Jaya</h3>
         </div>
 
         <nav className="nav-menu">
@@ -114,11 +121,19 @@ const Warehouse = () => {
           <a href="/WareHouse/gudangstockbarang">📦 Stock Gudang</a>
           <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
           <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
-          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
+          {/* <a href="/WareHouse/returgudang">↩️ Return Barang</a> */}
         </nav>
 
         <div className="sidebar-footer">
-          <button className="logout-btn">Keluar</button>
+         <button
+    className="logout-btn"
+    onClick={() => {
+      localStorage.removeItem("token");
+      navigate("/");
+    }}
+  >
+    Logout
+  </button>
         </div>
       </aside>
 

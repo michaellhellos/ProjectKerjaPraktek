@@ -4,7 +4,7 @@ import axios from "axios";
 import { FaTrash, FaPlus, FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./retur.css";
-
+import Logo from "../images/Logo.jpg";
 const Retur = () => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("retur");
@@ -98,8 +98,11 @@ const Retur = () => {
     <div className="retur-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <h2 className="sidebar-title">Admin</h2>
-        <p className="sidebar-role">Warehouse Manager</p>
+       <img src={Logo} alt="Profil" className="profile-image" />
+                         <div>
+                           <h2 className="sidebar-title">Admin</h2>
+                           <p className="sidebar-role">CV SEMOGA JADI JAYA</p>
+                         </div>
         <ul className="sidebar-menu">
           <li className={activeMenu === "dashboard" ? "active" : ""} onClick={() => handleMenuClick("dashboard")}>Dashboard</li>
           <li className={activeMenu === "karyawan" ? "active" : ""} onClick={() => handleMenuClick("karyawan")}>Manage Karyawan</li>
@@ -107,6 +110,15 @@ const Retur = () => {
           <li className={activeMenu === "barang" ? "active" : ""} onClick={() => handleMenuClick("barang")}>Daftar Barang</li>
           <li className={activeMenu === "retur" ? "active" : ""} onClick={() => handleMenuClick("retur")}>Buat Retur</li>
         </ul>
+          <button
+    className="logout-btn"
+    onClick={() => {
+      localStorage.removeItem("token");
+      navigate("/");
+    }}
+  >
+    Logout
+  </button>
       </aside>
 
       {/* Main */}

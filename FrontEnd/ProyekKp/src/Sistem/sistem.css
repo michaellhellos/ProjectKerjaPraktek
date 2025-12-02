@@ -161,3 +161,25 @@
   border: none;
   border-radius: 6px;
 }
+.logout-btn {
+  width: 100%;
+  padding: 12px 0;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+.logout-btn:hover {
+  background-color: #c9302c;
+}
+.profile-image {
+  width: 130px;   /* kecil */
+  height: 10
+  0px;  /* kecil */
+  object-fit: cover;
+}

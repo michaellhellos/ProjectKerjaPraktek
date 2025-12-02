@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./tambahkaryawan.css";
-
+import Logo from "../images/Logo.jpg";
 const TambahKaryawan = () => {
   const navigate = useNavigate();
 
@@ -17,6 +17,7 @@ const TambahKaryawan = () => {
   const [alamat, setAlamat] = useState("");
   const [noTelepon, setNoTelepon] = useState("");
   const [agama, setAgama] = useState("");
+const [activeMenu, setActiveMenu] = useState("managekaryawan");
 
   // === TAMBAHAN BARU UNTUK LOGIN ===
   const [email, setEmail] = useState("");
@@ -25,6 +26,15 @@ const TambahKaryawan = () => {
   // === BATAL ===
   const handleCancel = () => {
     navigate("/Sistem/managekariawan");
+  };
+  const handleMenuClick = (key) => {
+    setActiveMenu(key);
+    if (key === "karyawan") navigate("/Sistem/managekariawan");
+    else if (key === "stock") navigate("/Sistem/stockgudang");
+    else if (key === "barang") navigate("/Sistem/daftarBarang");
+    else if (key === "retur") navigate("/Sistem/retur");
+    else if (key === "dashboard") navigate("/Sistem/sistem");
+    else if (key === "EditProfile") navigate("/Sistem/editprofile");
   };
 
   // === SUBMIT ===
@@ -71,16 +81,27 @@ const TambahKaryawan = () => {
   return (
     <div className="add-container">
       <aside className="sidebar">
-        <h2 className="sidebar-title">Admin</h2>
-        <p className="sidebar-subtitle">Warehouse Manager</p>
+      <img src={Logo} alt="Profil" className="profile-image" />
+                        <div>
+                          <h2 className="sidebar-title">Admin</h2>
+                          <p className="sidebar-role">CV SEMOGA JADI JAYA</p>
+                        </div>
         <ul className="sidebar-menu">
-          <li>Dashboard</li>
-          <li className="active">Manage Karyawan</li>
-          <li>Stock Gudang</li>
-          <li>Daftar Barang</li>
-          <li>Buat Retur</li>
-          <li>Daftar Retur</li>
+            <li className={activeMenu === "dashboard" ? "active" : ""} onClick={() => handleMenuClick("dashboard")}>Dashboard</li>
+          <li className={activeMenu === "karyawan" ? "active" : ""} onClick={() => handleMenuClick("karyawan")}>Manage Karyawan</li>
+          <li className={activeMenu === "stock" ? "active" : ""} onClick={() => handleMenuClick("stock")}>Stock Gudang</li>
+          <li className={activeMenu === "barang" ? "active" : ""} onClick={() => handleMenuClick("barang")}>Daftar Barang</li>
+          <li className={activeMenu === "retur" ? "active" : ""} onClick={() => handleMenuClick("retur")}>Daftar Retur</li>
         </ul>
+           <button 
+          className="logout-btn" 
+          onClick={() => {
+            localStorage.removeItem("token"); // kalau Anda pakai token
+            navigate("/");               // arahkan ke halaman login
+          }}
+        >
+          Logout
+        </button>
       </aside>
 
       <div className="form-area">

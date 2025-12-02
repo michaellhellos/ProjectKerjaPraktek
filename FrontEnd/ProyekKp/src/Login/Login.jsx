@@ -186,7 +186,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-
+import Logo from "../images/Logo.jpg";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -239,7 +239,7 @@ function Login() {
       <div className="login-box">
         
         <div className="logo-section">
-          <div className="logo"></div>
+          <img src={Logo} alt="Profil" className="profile-image" />
           <p className="brand-name">SEMOGA JADI JAYA</p>
           <p className="since">• SINCE 1985 •</p>
         </div>

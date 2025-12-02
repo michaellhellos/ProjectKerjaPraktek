@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./gudang.css";
-
+import Logo from "../images/Logo.jpg";
 const Gudang = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -46,8 +46,8 @@ const Gudang = () => {
       {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="profile">
-          <h3>Toko</h3>
-          <p>Karyawan</p>
+          <img src={Logo} alt="Profil" className="profile-image" />
+                              <p className="brand-name">SEMOGA JADI JAYA</p>
         </div>
 
         <ul>

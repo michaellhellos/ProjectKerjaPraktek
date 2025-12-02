@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./gudangstockbarang.css";
+import Logo from "../images/Logo.jpg";
+import { useNavigate } from "react-router-dom";
 
 const GudangStockBarang = () => {
+  const navigate = useNavigate();   // ← WAJIB
+
   const [dataBarang, setDataBarang] = useState([]);
   const [search, setSearch] = useState("");
 
@@ -25,11 +29,16 @@ const GudangStockBarang = () => {
 
   return (
     <div className="gudang-container">
-      {/* Sidebar */}
+      
       <aside className="sidebar">
         <div className="profile">
-          <div className="profile-icon">A</div>
-          <h3>Acong</h3>
+          <img
+            src={Logo}
+            alt="Profil"
+            className="profile-image clickable-image"
+            onClick={() => navigate("/WareHouse/editprofile")}
+          />
+          <h3>Semoga Jadi Jaya</h3>
         </div>
 
         <nav className="nav-menu">
@@ -37,20 +46,25 @@ const GudangStockBarang = () => {
           <a href="/WareHouse/gudangstockbarang" className="active">📦 Stock Gudang</a>
           <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
           <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
-          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>
 
-        <button className="logout-btn" href="/">🚪 Keluar</button>
+        <button
+          className="logout-btn"
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/");
+          }}
+        >
+          Logout
+        </button>
       </aside>
 
-      {/* Main Content */}
       <main className="main-content">
         <header>
           <h1>Stock Gudang</h1>
           <p>Manage and monitor your warehouse inventory.</p>
         </header>
 
-        {/* Search bar */}
         <div className="search-container">
           <input
             type="text"
@@ -60,7 +74,6 @@ const GudangStockBarang = () => {
           />
         </div>
 
-        {/* Table */}
         <div className="table-container">
           <table>
             <thead>
@@ -94,13 +107,14 @@ const GudangStockBarang = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: "center" }}>Tidak ada data</td>
+                  <td colSpan="6">Tidak ada data</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </main>
+
     </div>
   );
 };

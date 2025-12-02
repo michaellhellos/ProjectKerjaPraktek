@@ -199,4 +199,9 @@ input[type="file"] {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}.profile-image {
+  width: 130px;   /* kecil */
+  height: 10
+  0px;  /* kecil */
+  object-fit: cover;
 }

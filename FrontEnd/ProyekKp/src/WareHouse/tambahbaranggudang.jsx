@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./tambahbaranggudang.css";
+import Logo from "../images/Logo.jpg";
+import { useNavigate } from "react-router-dom";   // ← WAJIB
 
 const TambahBarangGudang = () => {
+
+  const navigate = useNavigate();   // ← WAJIB
+
   const [formData, setFormData] = useState({
     idBarang: "",
     namaBarang: "",
@@ -75,19 +80,33 @@ const TambahBarangGudang = () => {
 
       <aside className="sidebar">
         <div className="profile">
-          <div className="profile-icon">A</div>
-          <h3>Acong</h3>
+          <img
+            src={Logo}
+            alt="Profil"
+            className="profile-image clickable-image"
+            onClick={() => navigate("/WareHouse/editprofile")}
+          />
+          <h3>Semoga Jadi Jaya</h3>
         </div>
 
         <nav className="nav-menu">
           <a href="/WareHouse/warehouse">📊 Dashboard</a>
           <a href="/WareHouse/gudangstockbarang">📦 Stock Gudang</a>
-          <a href="/WareHouse/tambahbaranggudang" className="active">➕ Tambah Barang Masuk</a>
+          <a href="/WareHouse/tambahbaranggudang" className="active">
+            ➕ Tambah Barang Masuk
+          </a>
           <a href="/WareHouse/tambahbarangkeluar">📤 Barang Keluar</a>
-          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
         </nav>
 
-        <button className="logout-btn">🚪 Keluar</button>
+        <button
+          className="logout-btn"
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/");
+          }}
+        >
+          Logout
+        </button>
       </aside>
 
       <main className="main-content">
@@ -101,7 +120,6 @@ const TambahBarangGudang = () => {
 
           <form onSubmit={handleSubmit}>
 
-            {/* Input lainnya tetap sama */}
             <div className="form-row">
               <div className="form-group">
                 <label>ID Barang</label>
@@ -135,7 +153,6 @@ const TambahBarangGudang = () => {
               <input type="date" name="tanggalMasuk" value={formData.tanggalMasuk} onChange={handleChange} required />
             </div>
 
-            {/* ✅ Upload Area bagus & ada preview */}
             <div className="form-group">
               <label>Foto Barang</label>
 

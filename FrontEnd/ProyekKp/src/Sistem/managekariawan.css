@@ -158,3 +158,20 @@
 .btn-success:hover {
   background-color: #059669;
 }
+.logout-btn {
+  width: 90%;
+  margin: 20px auto;
+  padding: 12px;
+  background: #ff4b4b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+}
+
+.logout-btn:hover {
+  background: #e60000;
+}

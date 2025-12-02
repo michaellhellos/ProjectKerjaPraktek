@@ -139,6 +139,30 @@ app.post("/login", async (req, res) => {
     });
   }
 });
+//admin update
+app.put("/update", async (req, res) => {
+  const { Email, Password } = req.body;
+
+  try {
+    // Pastikan admin ada (ambil admin pertama)
+    const admin = await Admin.findOne();
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin tidak ditemukan!" });
+    }
+
+    // Update data
+    admin.Email = Email;
+    admin.Password = Password;
+
+    await admin.save();
+
+    res.json({ message: "Profil admin berhasil diperbarui!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Gagal memperbarui admin!" });
+  }
+});
 
 //add kepala gudang 
 app.post("/register-kepalagudang",
@@ -197,6 +221,63 @@ app.post("/register-kepalagudang",
     }
   }
 );
+//update kepala gudang
+app.post("/kepalagudang/find", async (req, res) => {
+  try {
+    const { Email, Password } = req.body;
+
+    const kepala = await KepalaGudang.findOne({ Email, Password });
+
+    if (!kepala) {
+      return res.status(404).json({
+        success: false,
+        message: "Email atau Password lama salah!"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Data ditemukan!",
+      data: kepala
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server!"
+    });
+  }
+});
+app.put("/update-kepalagudang/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { Email, Password } = req.body;
+
+    const kepala = await KepalaGudang.findById(id);
+    if (!kepala) {
+      return res.status(404).json({
+        success: false,
+        message: "Kepala Gudang tidak ditemukan!"
+      });
+    }
+
+    kepala.Email = Email;
+    kepala.Password = Password;
+
+    await kepala.save();
+
+    res.json({
+      success: true,
+      message: "Profile berhasil diperbarui!",
+      data: kepala
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error!" });
+  }
+});
+
+
 // === Route Tambah Karyawan ===
 app.post(
   "/addKaryawan",
@@ -263,12 +344,47 @@ app.post(
 );
 
 //update email dan password karyawan
+// 🔍 CARI KARYAWAN BERDASARKAN EMAIL & PASSWORD LAMA
+app.post("/karyawan/find", async (req, res) => {
+  try {
+    const { Email, Password } = req.body;
+
+    if (!Email || !Password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email dan Password lama wajib diisi!",
+      });
+    }
+
+    // CARI EMAIL DAN PASSWORD LAMA
+    const karyawan = await Karyawan.findOne({ Email, Password });
+
+    if (!karyawan) {
+      return res.status(404).json({
+        success: false,
+        message: "Email atau Password lama salah!",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Data ditemukan!",
+      data: karyawan,
+    });
+
+  } catch (err) {
+    console.error("❌ Error find:", err);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+    });
+  }
+});
 app.put("/updateAuthKaryawan/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { email, password } = req.body;
 
-    // Cari karyawan berdasarkan ID
     const karyawan = await Karyawan.findById(id);
     if (!karyawan) {
       return res.status(404).json({
@@ -277,7 +393,6 @@ app.put("/updateAuthKaryawan/:id", async (req, res) => {
       });
     }
 
-    // Cek email baru tidak duplikat (kecuali email milik sendiri)
     if (email && email !== karyawan.Email) {
       const cekEmail = await Karyawan.findOne({ Email: email });
       if (cekEmail) {
@@ -289,7 +404,6 @@ app.put("/updateAuthKaryawan/:id", async (req, res) => {
       karyawan.Email = email;
     }
 
-    // Update password jika diberikan
     if (password) {
       karyawan.Password = password;
     }
@@ -306,6 +420,7 @@ app.put("/updateAuthKaryawan/:id", async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 app.get("/getKaryawan", async (req, res) => {
   try {

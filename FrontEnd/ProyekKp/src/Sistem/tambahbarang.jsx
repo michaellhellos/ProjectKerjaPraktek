@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./tambahbarang.css";
-
+import Logo from "../images/Logo.jpg";
 const TambahBarang = () => {
   const navigate = useNavigate(); // <--- TAMBAH INI
 

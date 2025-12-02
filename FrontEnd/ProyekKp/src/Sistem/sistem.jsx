@@ -3,6 +3,9 @@ import "./sistem.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ChartPenjualan from "../Components/ChartPenjualan";
+import ChartBarangMasuk from "../Components/ChartBarangMasuk";
+import PieChartTipeBarang from "../Components/PieChartTipeBarang";
+import Logo from "../images/Logo.jpg";
 const Sistem = () => {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const navigate = useNavigate();
@@ -230,10 +233,10 @@ useEffect(() => {
       {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="profile-section" onClick={() => handleMenuClick("EditProfile")}>
-          <img src="/images/profile.png" alt="Profile" className="profile-image" />
+        <img src={Logo} alt="Profil" className="profile-image" />
           <div>
             <h2 className="sidebar-title">Admin</h2>
-            <p className="sidebar-role">Warehouse Manager</p>
+            <p className="sidebar-role">CV SEMOGA JADI JAYA</p>
           </div>
         </div>
 
@@ -244,6 +247,16 @@ useEffect(() => {
           <li className={activeMenu === "barang" ? "active" : ""} onClick={() => handleMenuClick("barang")}>Daftar Barang</li>
           <li className={activeMenu === "retur" ? "active" : ""} onClick={() => handleMenuClick("retur")}>Daftar Retur</li>
         </ul>
+        <button 
+          className="logout-btn" 
+          onClick={() => {
+            localStorage.removeItem("token"); // kalau Anda pakai token
+            navigate("/");               // arahkan ke halaman login
+          }}
+        >
+          Logout
+        </button>
+
       </aside>
 
       {/* MAIN CONTENT */}
@@ -376,10 +389,15 @@ useEffect(() => {
             <ChartPenjualan />
           </div>
 
-          <div className="chart-card">
-            <h3>Stock Tiap Di Gudang Barang</h3>
-            <div className="chart-placeholder">[ Grafik Pie ]</div>
-          </div>
+         <div className="chart-card">
+    <h3>Diagram Batang Barang Masuk</h3>
+    <ChartBarangMasuk />
+  </div>
+
+  <div className="chart-card">
+    <h3>Diagram Pie Tipe Barang</h3>
+    <PieChartTipeBarang />
+  </div>
         </div>
       </main>
     </div>

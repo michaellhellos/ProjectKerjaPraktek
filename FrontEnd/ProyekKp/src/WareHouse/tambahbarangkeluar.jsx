@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./tambahbarangkeluar.css";
-
+import Logo from "../images/Logo.jpg";
+import { useNavigate } from "react-router-dom";
 const TambahBarangKeluar = () => {
+  const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [dataBarangKeluar, setDataBarangKeluar] = useState([]);
   const [formData, setFormData] = useState({
@@ -72,17 +74,31 @@ const TambahBarangKeluar = () => {
     <div className="keluar-container">
       <aside className="sidebar">
         <div className="profile">
-          <div className="profile-icon">A</div>
-          <h3>Acong</h3>
+           <img
+            src={Logo}
+            alt="Profil"
+            className="profile-image clickable-image"
+            onClick={() => navigate("/WareHouse/editprofile")}
+          />
+          
+                    <h3>Semoga Jadi Jaya</h3>
         </div>
         <nav className="nav-menu">
           <a href="/WareHouse/warehouse">📊 Dashboard</a>
           <a href="/WareHouse/gudangstockbarang">📦 Stock Gudang</a>
           <a href="/WareHouse/tambahbaranggudang">➕ Tambah Barang Masuk</a>
           <a href="/WareHouse/tambahbarangkeluar" className="active">📤 Barang Keluar</a>
-          <a href="/WareHouse/returgudang">↩️ Return Barang</a>
+          {/* <a href="/WareHouse/returgudang">↩️ Return Barang</a> */}
         </nav>
-        <button className="logout-btn">🚪 Keluar</button>
+       <button
+    className="logout-btn"
+    onClick={() => {
+      localStorage.removeItem("token");
+      navigate("/");
+    }}
+  >
+    Logout
+  </button>
       </aside>
 
       <main className="main-content">

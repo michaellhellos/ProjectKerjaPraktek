@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./managekariawan.css";
-
+import Logo from "../images/Logo.jpg";  
 function ManageKariawan() {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("karyawan");
@@ -73,42 +73,58 @@ function ManageKariawan() {
   return (
     <div className="manage-container">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <h2 className="sidebar-title">Admin</h2>
-        <p className="sidebar-role">Warehouse Manager</p>
-        <ul className="sidebar-menu">
-          <li
-            className={activeMenu === "dashboard" ? "active" : ""}
-            onClick={() => handleMenuClick("dashboard")}
-          >
-            Dashboard
-          </li>
-          <li
-            className={activeMenu === "karyawan" ? "active" : ""}
-            onClick={() => handleMenuClick("karyawan")}
-          >
-            Manage Karyawan
-          </li>
-          <li
-            className={activeMenu === "stock" ? "active" : ""}
-            onClick={() => handleMenuClick("stock")}
-          >
-            Stock Gudang
-          </li>
-          <li
-            className={activeMenu === "barang" ? "active" : ""}
-            onClick={() => handleMenuClick("barang")}
-          >
-            Daftar Barang
-          </li>
-          <li
-            className={activeMenu === "retur" ? "active" : ""}
-            onClick={() => handleMenuClick("retur")}
-          >
-            Daftar Retur
-          </li>
-        </ul>
-      </aside>
+    <aside className="sidebar">
+  <img src={Logo} alt="Profil" className="profile-image" />
+                    <div>
+                      <h2 className="sidebar-title">Admin</h2>
+                      <p className="sidebar-role">CV SEMOGA JADI JAYA</p>
+                    </div>
+
+  <ul className="sidebar-menu">
+    <li
+      className={activeMenu === "dashboard" ? "active" : ""}
+      onClick={() => handleMenuClick("dashboard")}
+    >
+      Dashboard
+    </li>
+    <li
+      className={activeMenu === "karyawan" ? "active" : ""}
+      onClick={() => handleMenuClick("karyawan")}
+    >
+      Manage Karyawan
+    </li>
+    <li
+      className={activeMenu === "stock" ? "active" : ""}
+      onClick={() => handleMenuClick("stock")}
+    >
+      Stock Gudang
+    </li>
+    <li
+      className={activeMenu === "barang" ? "active" : ""}
+      onClick={() => handleMenuClick("barang")}
+    >
+      Daftar Barang
+    </li>
+    <li
+      className={activeMenu === "retur" ? "active" : ""}
+      onClick={() => handleMenuClick("retur")}
+    >
+      Daftar Retur
+    </li>
+  </ul>
+
+  {/* === TOMBOL LOGOUT === */}
+  <button
+    className="logout-btn"
+    onClick={() => {
+      localStorage.removeItem("token");
+      navigate("/");
+    }}
+  >
+    Logout
+  </button>
+</aside>
+
 
       {/* Main Content */}
       <div className="main-content">

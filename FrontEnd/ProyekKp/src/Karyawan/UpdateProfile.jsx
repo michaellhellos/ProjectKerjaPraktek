@@ -1,108 +1,117 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";   // ⬅️ TAMBAHKAN INI
 import "./updateAuthKaryawan.css";
 
 const UpdateAuthKaryawan = () => {
-  const [id, setId] = useState("");
+  const navigate = useNavigate();   // ⬅️ INISIALISASI NAVIGATE
 
-  // Input lama
   const [oldEmail, setOldEmail] = useState("");
   const [oldPassword, setOldPassword] = useState("");
 
-  // Input baru
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
+  const [userId, setUserId] = useState(null);
   const [message, setMessage] = useState("");
 
-  // 🔹 Ambil data karyawan saat halaman dibuka
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/karyawan/profile");
-
-        if (res.data.success) {
-          setId(res.data.karyawan._id);
-          setOldEmail(res.data.karyawan.Email); // otomatis isi email lama
-        }
-      } catch (err) {
-        console.log("Gagal fetch:", err);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  // 🔹 Submit update data auth
-  const handleSubmit = async (e) => {
+  // 🔍 CARI DATA BERDASARKAN EMAIL & PASSWORD LAMA
+  const handleFind = (e) => {
     e.preventDefault();
 
-    // Pastikan password lama tidak kosong
-    if (!oldPassword) {
-      setMessage("❌ Password lama wajib diisi!");
-      return;
-    }
+    axios
+      .post("http://localhost:3000/karyawan/find", {
+        Email: oldEmail,
+        Password: oldPassword,
+      })
+      .then((res) => {
+        setUserId(res.data.data._id);
+        setNewEmail(res.data.data.Email);
+        setNewPassword(res.data.data.Password);
+        setMessage("✅ Data Ditemukan!");
+      })
+      .catch(() => {
+        setMessage("❌ Email atau Password lama salah!");
+      });
+  };
 
-    try {
-      const res = await axios.put(
-        `http://localhost:3000/updateAuthKaryawan/${id}`,
-        {
-          email: newEmail ? newEmail : oldEmail,
-          password: newPassword ? newPassword : oldPassword,
-        }
-      );
+  // 🔄 UPDATE EMAIL & PASSWORD BARU
+  const handleUpdate = (e) => {
+    e.preventDefault();
 
-      if (res.data.success) {
-        setMessage("✅ Email & Password berhasil diperbarui!");
-      } else {
-        setMessage("❌ Gagal memperbarui data");
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage("❌ Terjadi kesalahan server");
-    }
+    axios
+      .put(`http://localhost:3000/updateAuthKaryawan/${userId}`, {
+        email: newEmail,
+        password: newPassword,
+      })
+      .then(() => {
+        setMessage("✅ Berhasil update!");
+
+        // ⬅️ AUTO PINDAH KE HALAMAN HOME KARYAWAN DALAM 1 DETIK
+        setTimeout(() => {
+          navigate("/Karyawan/homePage");
+        }, 1000);
+
+      })
+      .catch(() => {
+        setMessage("❌ Gagal update!");
+      });
   };
 
   return (
     <div className="auth-update-container">
-      <h2 className="auth-title">Update Akun Karyawan</h2>
+      <div className="auth-card">
+        <h2 className="auth-title">Update Akun Karyawan</h2>
+        {message && <p className="auth-message">{message}</p>}
 
-      {message && <p className="auth-message">{message}</p>}
+        {/* FORM CARI */}
+        <form className="auth-update-form" onSubmit={handleFind}>
+          <label>Email Lama:</label>
+          <input
+            type="email"
+            value={oldEmail}
+            onChange={(e) => setOldEmail(e.target.value)}
+            required
+          />
 
-      <form className="auth-update-form" onSubmit={handleSubmit}>
-        
-        <label>Email Lama:</label>
-        <input type="email" value={oldEmail} disabled />
+          <label>Password Lama:</label>
+          <input
+            type="password"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+            required
+          />
 
-        <label>Password Lama:</label>
-        <input
-          type="password"
-          placeholder="Masukkan password lama"
-          value={oldPassword}
-          onChange={(e) => setOldPassword(e.target.value)}
-          required
-        />
+          <button type="submit" className="auth-btn">Cari Data</button>
+        </form>
 
-        <label>Email Baru:</label>
-        <input
-          type="email"
-          placeholder="Masukkan email baru"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-        />
+        <hr />
 
-        <label>Password Baru:</label>
-        <input
-          type="password"
-          placeholder="Masukkan password baru"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
+        {/* FORM UPDATE */}
+        <form className="auth-update-form" onSubmit={handleUpdate}>
+          <label>Email Baru:</label>
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            disabled={!userId}
+            required
+          />
 
-        <button type="submit" className="auth-btn">
-          Simpan Perubahan
-        </button>
-      </form>
+          <label>Password Baru:</label>
+          <input
+            type="text"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            disabled={!userId}
+            required
+          />
+
+          <button type="submit" className="auth-btn" disabled={!userId}>
+            Update
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
